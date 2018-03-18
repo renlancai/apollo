@@ -20,6 +20,10 @@
 #include "boost/program_options.hpp"
 
 #include "modules/localization/msf/common/io/velodyne_utility.h"
+
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+
 #include "modules/localization/msf/common/util/extract_ground_plane.h"
 #include "modules/localization/msf/common/util/system_utility.h"
 #include "modules/localization/msf/local_map/lossless_map/lossless_map.h"
@@ -273,6 +277,14 @@ int main(int argc, char** argv) {
       std::cout << "Loaded " << velodyne_frame.pt3ds.size()
                 << "3D Points at Trial: " << trial
                 << " Frame: " << trial_frame_idx << "." << std::endl;
+
+      // filter
+      for (size_t i = 0; i < velodyne_frame.pt3ds.size(); ++i) {
+        unsigned char intensity = velodyne_frame.intensities[i];
+        if (intensity > 40) {
+          velodyne_frame.intensities[i] = 40;
+        }
+      }
 
       for (size_t i = 0; i < velodyne_frame.pt3ds.size(); ++i) {
         Eigen::Vector3d& pt3d_local = velodyne_frame.pt3ds[i];

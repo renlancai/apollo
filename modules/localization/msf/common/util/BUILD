@@ -8,6 +8,7 @@ cc_library(
         "compression.cc",
         "system_utility.cc",
         "frame_transform.cc",
+        "file_utility.cc",
     ],
     hdrs = [
         "compression.h",
@@ -17,10 +18,13 @@ cc_library(
         "threadpool.h",
         "voxel_grid_covariance_hdmap.h",
         "frame_transform.h",
+        "file_utility.h",
     ],
     linkopts = [
         "-lboost_filesystem",
         "-lboost_system",
+        "-lssl",
+        "-lcrypto",
     ],
     deps = [
         "//modules/common:log",

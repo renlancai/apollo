@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *****************************************************************************/
-
-#include "modules/localization/msf/local_map/base_map/base_map_matrix.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_pool.h"
 
 namespace apollo {
 namespace localization {
 namespace msf {
 
-BaseMapMatrix::BaseMapMatrix() {
+PyramidMapNodePool::PyramidMapNodePool(unsigned int pool_size, 
+                                    unsigned int thread_size) 
+    : BaseMapNodePool(pool_size, thread_size) { 
 }
 
-BaseMapMatrix::~BaseMapMatrix() {
+PyramidMapNodePool::~PyramidMapNodePool() {
 }
 
-BaseMapMatrix::BaseMapMatrix(const BaseMapMatrix& map_matrix) {
+BaseMapNode* PyramidMapNodePool::AllocNewMapNode() {
+    return new PyramidMapNode();
 }
 
-} // map
+} // namespace msf
 } // namespace localization
-} // namespace adu
-
-
+} // namespace apollo

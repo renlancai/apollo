@@ -37,7 +37,7 @@ cc_library(
     ] + select({
         "//tools/platforms:x86_64": [
             "//modules/localization/msf:msf_localization",
-            "//modules/localization/msf/local_map/lossy_map:localization_msf_lossy_map",
+            "//modules/localization/msf/local_map/pyramid_map:localization_msf_pyramid_map",
         ],
         "//conditions:default": [
         ],

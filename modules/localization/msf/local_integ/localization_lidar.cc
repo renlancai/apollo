@@ -371,7 +371,8 @@ void LocalizationLidar::ComposeMapNode(const Eigen::Vector3d& trans) {
           if (intensity) {
             lidar_map_node_->intensities[dst_idx] = *intensity;
           }
-          const float *intensity_var = map_cells.GetIntensityVarSafe(row, col, 0);
+          const float *intensity_var =
+            map_cells.GetIntensityVarSafe(row, col, 0);
           if (intensity_var) {
             lidar_map_node_->intensities[dst_idx] = *intensity_var;
           }

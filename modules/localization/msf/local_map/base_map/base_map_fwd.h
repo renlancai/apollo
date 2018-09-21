@@ -57,4 +57,4 @@ class BaseMapNodePool;
 }  // namespace localization
 }  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_FWD_H
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_FWD_H

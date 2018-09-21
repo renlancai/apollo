@@ -20,148 +20,140 @@ namespace apollo {
 namespace localization {
 namespace msf {
 
-BaseMapNodeConfig::BaseMapNodeConfig() {
+BaseMapNodeConfig::BaseMapNodeConfig() {}
+
+BaseMapNodeConfig::~BaseMapNodeConfig() {}
+
+BaseMapNodeConfig *BaseMapNodeConfig::Clone() {
+  BaseMapNodeConfig *map_node_config = new BaseMapNodeConfig();
+  map_node_config->node_index_ = node_index_;
+  map_node_config->map_version_ = map_version_;
+  memcpy(map_node_config->body_md5_, body_md5_, sizeof(body_md5_));
+  map_node_config->body_size_ = body_size_;
+  map_node_config->has_map_version_ = has_map_version_;
+  map_node_config->has_body_md5_ = has_body_md5_;
+
+  return map_node_config;
 }
 
-BaseMapNodeConfig::~BaseMapNodeConfig() {
-}
-    
-BaseMapNodeConfig* BaseMapNodeConfig::Clone() {
-    BaseMapNodeConfig* map_node_config = new BaseMapNodeConfig(); 
-    map_node_config->node_index_ = node_index_;
-    map_node_config->map_version_ = map_version_;
-    memcpy(map_node_config->body_md5_, body_md5_, sizeof(body_md5_));
-    map_node_config->body_size_ = body_size_;
-    map_node_config->has_map_version_ = has_map_version_;
-    map_node_config->has_body_md5_ = has_body_md5_;
+unsigned int BaseMapNodeConfig::LoadBinary(const unsigned char *buf) {
+  unsigned int binary_size = 0;
 
-    return map_node_config;
-}
+  // map_version
+  const uint16_t *us_p = reinterpret_cast<const uint16_t *>(buf);
+  if (has_map_version_) {
+    binary_size += sizeof(uint16_t);
+    map_version_ = static_cast<MapVersion>(*us_p);
+    ++us_p;
+  }
 
-unsigned int BaseMapNodeConfig::LoadBinary(
-                                const unsigned char *buf) { 
-    unsigned int binary_size = 0;
+  // body_md5
+  const unsigned char *uc_p = reinterpret_cast<const unsigned char *>(us_p);
+  if (has_body_md5_) {
+    binary_size += sizeof(body_md5_);
+    memcpy(body_md5_, uc_p, sizeof(body_md5_));
+    uc_p += MD5LENTH;
+  }
 
-    // map_version
-    const unsigned short *us_p = reinterpret_cast<const unsigned short*>(buf);
-    if (has_map_version_) {
-        binary_size += sizeof(unsigned short);
-        map_version_ = static_cast<MapVersion>(*us_p);
-        ++us_p;
-    }
+  binary_size += sizeof(unsigned int) + sizeof(int) + sizeof(unsigned int) +
+                 sizeof(unsigned int) + sizeof(unsigned int);
+  // node_index._resolution_id
+  const unsigned int *ui_p = reinterpret_cast<const unsigned int *>(us_p);
+  node_index_.resolution_id_ = *ui_p;
+  ++ui_p;
 
-    // body_md5
-    const unsigned char *uc_p = reinterpret_cast<const unsigned char*>(us_p);
-    if (has_body_md5_) {
-        binary_size += sizeof(body_md5_);
-        memcpy(body_md5_, uc_p, sizeof(body_md5_));
-        uc_p += MD5LENTH;
-    }
+  // node_index._zone_id
+  const int *int_p = reinterpret_cast<const int *>(ui_p);
+  node_index_.zone_id_ = *int_p;
+  ++int_p;
 
-    binary_size += sizeof(unsigned int)     
-                        + sizeof(int)            
-                        + sizeof(unsigned int)   
-                        + sizeof(unsigned int)
-                        + sizeof(unsigned int);
-    // node_index._resolution_id
-    const unsigned int *ui_p = reinterpret_cast<const unsigned int*>(us_p);
-    node_index_.resolution_id_ = *ui_p;
-    ++ui_p;
+  // node_index._m
+  ui_p = reinterpret_cast<const unsigned int *>(int_p);
+  node_index_.m_ = *ui_p;
+  ++ui_p;
 
-    // node_index._zone_id
-    const int *int_p = reinterpret_cast<const int*>(ui_p);
-    node_index_.zone_id_ = *int_p;
-    ++int_p;
+  // node_index._n
+  node_index_.n_ = *ui_p;
+  ++ui_p;
 
-    // node_index._m
-    ui_p = reinterpret_cast<const unsigned int*>(int_p);
-    node_index_.m_ = *ui_p;
-    ++ui_p;
+  // the body size
+  body_size_ = *ui_p;
 
-    // node_index._n
-    node_index_.n_ = *ui_p;
-    ++ui_p;
- 
-    // the body size
-    body_size_ = *ui_p;
-
-    return binary_size;
+  return binary_size;
 }
 
-unsigned int BaseMapNodeConfig::CreateBinary(unsigned char *buf, 
-                                unsigned int buf_size) const {
-    unsigned int target_size = GetBinarySize();
+unsigned int BaseMapNodeConfig::CreateBinary(unsigned char *buf,
+                                             unsigned int buf_size) const {
+  unsigned int target_size = GetBinarySize();
 
-    if (buf_size < target_size) {
-        return 0;
-    }
-  
-    // map_version
-    unsigned short *us_p = reinterpret_cast<unsigned short*>(buf);
-    if (has_map_version_) {
-        *us_p = static_cast<unsigned short>(map_version_);
-        ++us_p;
-    }
+  if (buf_size < target_size) {
+    return 0;
+  }
 
-    // body_md5
-    unsigned char *uc_p = reinterpret_cast<unsigned char*>(us_p);
-    if (has_body_md5_) {
-        memcpy(uc_p, body_md5_, sizeof(body_md5_));
-        uc_p += MD5LENTH;
-    }
+  // map_version
+  uint16_t *us_p = reinterpret_cast<uint16_t *>(buf);
+  if (has_map_version_) {
+    *us_p = static_cast<uint16_t>(map_version_);
+    ++us_p;
+  }
 
-    // node_index._resolution_id
-    unsigned int *ui_p = reinterpret_cast<unsigned int*>(us_p);
-    *ui_p = node_index_.resolution_id_;
-    ++ui_p;
+  // body_md5
+  unsigned char *uc_p = reinterpret_cast<unsigned char *>(us_p);
+  if (has_body_md5_) {
+    memcpy(uc_p, body_md5_, sizeof(body_md5_));
+    uc_p += MD5LENTH;
+  }
 
-    // node_index._zone_id
-    int *int_p = reinterpret_cast<int*>(ui_p);
-    *int_p = node_index_.zone_id_;
-    ++int_p;
+  // node_index._resolution_id
+  unsigned int *ui_p = reinterpret_cast<unsigned int *>(us_p);
+  *ui_p = node_index_.resolution_id_;
+  ++ui_p;
 
-    // node_index._m
-    ui_p = reinterpret_cast<unsigned int*>(int_p);
-    *ui_p = node_index_.m_;
-    ++ui_p;
+  // node_index._zone_id
+  int *int_p = reinterpret_cast<int *>(ui_p);
+  *int_p = node_index_.zone_id_;
+  ++int_p;
 
-    // node_index._n
-    *ui_p = node_index_.n_;
-    ++ui_p;
+  // node_index._m
+  ui_p = reinterpret_cast<unsigned int *>(int_p);
+  *ui_p = node_index_.m_;
+  ++ui_p;
 
-    // the body size
-    *ui_p = body_size_;
+  // node_index._n
+  *ui_p = node_index_.n_;
+  ++ui_p;
 
-    return target_size;
+  // the body size
+  *ui_p = body_size_;
+
+  return target_size;
 }
 
 unsigned int BaseMapNodeConfig::GetBinarySize() const {
-    unsigned int binary_size = 0;
+  unsigned int binary_size = 0;
 
-    //map_version
-    if (has_map_version_) {
-        binary_size += sizeof(unsigned short);
-    }
+  // map_version
+  if (has_map_version_) {
+    binary_size += sizeof(uint16_t);
+  }
 
-    //body_md5
-    if (has_body_md5_) {
-        binary_size += sizeof(body_md5_);
-    }
+  // body_md5
+  if (has_body_md5_) {
+    binary_size += sizeof(body_md5_);
+  }
 
-    // node_index._resolution_id
-    // node_index._zone_id
-    // node_index._m
-    // node_index._n
-    binary_size += sizeof(unsigned int)     
-                        + sizeof(int)            
-                        + sizeof(unsigned int)   
-                        + sizeof(unsigned int);  
+  // node_index._resolution_id
+  // node_index._zone_id
+  // node_index._m
+  // node_index._n
+  binary_size += sizeof(unsigned int) + sizeof(int) + sizeof(unsigned int) +
+                 sizeof(unsigned int);
 
-    // the body size
-    binary_size += sizeof(unsigned int);
-    return binary_size;
+  // the body size
+  binary_size += sizeof(unsigned int);
+  return binary_size;
 }
 
-} // msf
-} // localization
-} // apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo

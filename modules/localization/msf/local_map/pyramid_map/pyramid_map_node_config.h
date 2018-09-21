@@ -24,15 +24,15 @@ namespace msf {
 
 class PyramidMapNodeConfig : public BaseMapNodeConfig {
  public:
-    PyramidMapNodeConfig();
-    ~PyramidMapNodeConfig();
+  PyramidMapNodeConfig();
+  ~PyramidMapNodeConfig();
 
-    // virtual BaseMapNodeConfig* alloc_new_map_node_config();
-    virtual BaseMapNodeConfig* Clone();
+  virtual BaseMapNodeConfig* Clone();
 };
 
-} // namespace msf
-} // namespace localization
-} // namespace apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_PYRAMID_MAP_NODE_CONFIG_H
+// MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_PYRAMID_MAP_NODE_CONFIG_H
+#endif

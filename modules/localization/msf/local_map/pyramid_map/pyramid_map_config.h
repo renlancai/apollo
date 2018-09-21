@@ -16,6 +16,7 @@
 #ifndef MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_CONFIG_H
 #define MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_CONFIG_H
 
+#include <string>
 #include "modules/localization/msf/local_map/base_map/base_map_config.h"
 
 namespace apollo {
@@ -24,7 +25,7 @@ namespace msf {
 
 class PyramidMapConfig : public BaseMapConfig {
  public:
-  PyramidMapConfig(const std::string &map_version);
+  explicit PyramidMapConfig(const std::string& map_version);
   ~PyramidMapConfig();
 
   bool has_intensity_ = true;
@@ -34,7 +35,7 @@ class PyramidMapConfig : public BaseMapConfig {
   bool has_ground_altitude_ = true;
   bool has_count_ = true;
   bool has_ground_count_ = true;
-  unsigned int resolution_num_ = 1; 
+  unsigned int resolution_num_ = 1;
   unsigned int resolution_ratio_ = 2;
   /**@brief coordinate type. */
   std::string coordinate_type_;
@@ -47,14 +48,14 @@ class PyramidMapConfig : public BaseMapConfig {
   float max_intensity_var_value_;
 
  protected:
-    /**@brief Create the XML structure. */
-    virtual bool CreateXml(boost::property_tree::ptree* config) const;
-    /**@brief Load the map options from a XML structure. */
-    virtual bool LoadXml(const boost::property_tree::ptree& config); 
+  /**@brief Create the XML structure. */
+  virtual bool CreateXml(boost::property_tree::ptree* config) const;
+  /**@brief Load the map options from a XML structure. */
+  virtual bool LoadXml(const boost::property_tree::ptree& config);
 };
 
-} // namespace msf
-} // namespace localization
-} // namespace apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_CONFIG_H
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_CONFIG_H

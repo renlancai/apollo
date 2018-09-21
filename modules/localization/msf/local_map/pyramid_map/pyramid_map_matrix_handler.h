@@ -23,87 +23,88 @@ namespace apollo {
 namespace localization {
 namespace msf {
 class PyramidMapMatrixHandlerSelector {
-public:
-    PyramidMapMatrixHandlerSelector();  
-    ~PyramidMapMatrixHandlerSelector();
+ public:
+  PyramidMapMatrixHandlerSelector();
+  ~PyramidMapMatrixHandlerSelector();
 
-    static BaseMapMatrixHandler* AllocPyramidMapMatrixHandler(
-                                            MapVersion version);  
+  static BaseMapMatrixHandler* AllocPyramidMapMatrixHandler(MapVersion version);
 };
 
 class LossyMapMatrixHandler : public BaseMapMatrixHandler {
-public:
-    LossyMapMatrixHandler();
-    virtual ~LossyMapMatrixHandler();
+ public:
+  LossyMapMatrixHandler();
+  virtual ~LossyMapMatrixHandler();
 
-protected:
-    virtual unsigned char EncodeIntensity(float intensity) const;
-    virtual void DecodeIntensity(unsigned char data, float *intensity) const;
-    virtual unsigned short EncodeIntensityVar(float var) const;
-    virtual void DecodeIntensityVar(unsigned short data, float *var) const;
-    virtual unsigned short EncodeAltitude(float altitude, float min_altitude, 
-                                    float altitude_interval) const;
-    virtual void DecodeAltitude(unsigned short data, float min_altitude, 
-                    float altitude_interval, float *altitude) const;
-    virtual unsigned char EncodeCount(unsigned int count, 
-                            unsigned int count_range) const;
-    virtual void DecodeCount(unsigned char data, 
-                    unsigned int *count) const;
-    const unsigned int var_range_ = 1023;//65535;
-    const unsigned int var_ratio_ = 4;//256;
-    const unsigned int count_range_ = 2;//31;
-    const float ground_alt_interval_ = 0.04;
-    const float alt_avg_interval_ = 0.04;
-    mutable float alt_avg_min_ = 0.0;
-    mutable float ground_alt_min_ = 0.0;
-    mutable float alt_avg_max_ = 0.0;
-    mutable float ground_alt_max_ = 0.0;
+ protected:
+  virtual unsigned char EncodeIntensity(float intensity) const;
+  virtual void DecodeIntensity(unsigned char data, float* intensity) const;
+  virtual uint16_t EncodeIntensityVar(float var) const;
+  virtual void DecodeIntensityVar(uint16_t data, float* var) const;
+  virtual uint16_t EncodeAltitude(float altitude, float min_altitude,
+                                        float altitude_interval) const;
+  virtual void DecodeAltitude(uint16_t data, float min_altitude,
+                              float altitude_interval, float* altitude) const;
+  virtual unsigned char EncodeCount(unsigned int count,
+                                    unsigned int count_range) const;
+  virtual void DecodeCount(unsigned char data, unsigned int* count) const;
+  const unsigned int var_range_ = 1023;  // 65535;
+  const unsigned int var_ratio_ = 4;     // 256;
+  const unsigned int count_range_ = 2;   // 31;
+  const float ground_alt_interval_ = 0.04;
+  const float alt_avg_interval_ = 0.04;
+  mutable float alt_avg_min_ = 0.0;
+  mutable float ground_alt_min_ = 0.0;
+  mutable float alt_avg_max_ = 0.0;
+  mutable float ground_alt_max_ = 0.0;
 };
 
-class LossyMapFullAltMatrixHandler: public LossyMapMatrixHandler {
-public:
-    LossyMapFullAltMatrixHandler();
-    ~LossyMapFullAltMatrixHandler();
- 
-    virtual unsigned int LoadBinary(const unsigned char* buf, BaseMapMatrix* matrix);
-    virtual unsigned int CreateBinary(const BaseMapMatrix* matrix, 
-                                    unsigned char *buf, unsigned int buf_size);
-    virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
+class LossyMapFullAltMatrixHandler : public LossyMapMatrixHandler {
+ public:
+  LossyMapFullAltMatrixHandler();
+  ~LossyMapFullAltMatrixHandler();
 
+  virtual unsigned int LoadBinary(const unsigned char* buf,
+                                  BaseMapMatrix* matrix);
+  virtual unsigned int CreateBinary(const BaseMapMatrix* matrix,
+                                    unsigned char* buf, unsigned int buf_size);
+  virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
 };
 
-class LosslessMapMatrixHandler: public BaseMapMatrixHandler {
-public:
-    LosslessMapMatrixHandler();
-    ~LosslessMapMatrixHandler();
-    virtual unsigned int LoadBinary(const unsigned char* buf, BaseMapMatrix* matrix);
-    virtual unsigned int CreateBinary(const BaseMapMatrix* matrix, 
-                                    unsigned char *buf, unsigned int buf_size);
-    virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
+class LosslessMapMatrixHandler : public BaseMapMatrixHandler {
+ public:
+  LosslessMapMatrixHandler();
+  ~LosslessMapMatrixHandler();
+  virtual unsigned int LoadBinary(const unsigned char* buf,
+                                  BaseMapMatrix* matrix);
+  virtual unsigned int CreateBinary(const BaseMapMatrix* matrix,
+                                    unsigned char* buf, unsigned int buf_size);
+  virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
 };
 
-class PyramidLossyMapMatrixHandler: public LossyMapMatrixHandler {
-public:
-    PyramidLossyMapMatrixHandler();
-    ~PyramidLossyMapMatrixHandler();
-    virtual unsigned int LoadBinary(const unsigned char* buf, BaseMapMatrix* matrix);
-    virtual unsigned int CreateBinary(const BaseMapMatrix* matrix, 
-                                    unsigned char *buf, unsigned int buf_size);
-    virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
+class PyramidLossyMapMatrixHandler : public LossyMapMatrixHandler {
+ public:
+  PyramidLossyMapMatrixHandler();
+  ~PyramidLossyMapMatrixHandler();
+  virtual unsigned int LoadBinary(const unsigned char* buf,
+                                  BaseMapMatrix* matrix);
+  virtual unsigned int CreateBinary(const BaseMapMatrix* matrix,
+                                    unsigned char* buf, unsigned int buf_size);
+  virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
 };
 
-class PyramidLosslessMapMatrixHandler: public BaseMapMatrixHandler {
-public:
-    PyramidLosslessMapMatrixHandler();
-    ~PyramidLosslessMapMatrixHandler();
-    virtual unsigned int LoadBinary(const unsigned char* buf, BaseMapMatrix* matrix);
-    virtual unsigned int CreateBinary(const BaseMapMatrix* matrix, 
-                                    unsigned char *buf, unsigned int buf_size);
-    virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
+class PyramidLosslessMapMatrixHandler : public BaseMapMatrixHandler {
+ public:
+  PyramidLosslessMapMatrixHandler();
+  ~PyramidLosslessMapMatrixHandler();
+  virtual unsigned int LoadBinary(const unsigned char* buf,
+                                  BaseMapMatrix* matrix);
+  virtual unsigned int CreateBinary(const BaseMapMatrix* matrix,
+                                    unsigned char* buf, unsigned int buf_size);
+  virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix);
 };
 
-} // namespace msf
-} // namespace localization
-} // namespace apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_MATRIX_HANDLER_H
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_MATRIX_HANDLER_H

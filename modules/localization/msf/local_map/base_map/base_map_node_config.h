@@ -28,37 +28,38 @@ namespace msf {
 
 /**@brief The map node config info. */
 class BaseMapNodeConfig {
-public:
-    BaseMapNodeConfig();
-    virtual ~BaseMapNodeConfig();
+ public:
+  BaseMapNodeConfig();
+  virtual ~BaseMapNodeConfig();
 
-    /**@brief Alloc a new map node config.*/
-    // virtual BaseMapNodeConfig* alloc_new_map_node_config();
-    /**@brief Clone a new map node config.*/
-    virtual BaseMapNodeConfig* Clone();
-    /**@brief Load the map node config from a binary chunk.
-     * @param <return> The size read (the real size of config).
-     */
-    virtual unsigned int LoadBinary(const unsigned char *buf);
-    /**@brief Create the binary map node config.
-     * @param <buf, buf_size> The buffer and its size.
-     * @param <return> The required or the used size.
-     */
-    virtual unsigned int CreateBinary(unsigned char *buf, unsigned int buf_size) const;
-    /**@brief Get the size of the config in bytes. */
-    virtual unsigned int GetBinarySize() const;
+  /**@brief Alloc a new map node config.*/
+  // virtual BaseMapNodeConfig* alloc_new_map_node_config();
+  /**@brief Clone a new map node config.*/
+  virtual BaseMapNodeConfig *Clone();
+  /**@brief Load the map node config from a binary chunk.
+   * @param <return> The size read (the real size of config).
+   */
+  virtual unsigned int LoadBinary(const unsigned char *buf);
+  /**@brief Create the binary map node config.
+   * @param <buf, buf_size> The buffer and its size.
+   * @param <return> The required or the used size.
+   */
+  virtual unsigned int CreateBinary(unsigned char *buf,
+                                    unsigned int buf_size) const;
+  /**@brief Get the size of the config in bytes. */
+  virtual unsigned int GetBinarySize() const;
 
-public:
-    MapNodeIndex node_index_;
-    MapVersion map_version_ = MapVersion::UNKNOWN;
-    unsigned char body_md5_[MD5LENTH] = {0};
-    unsigned int body_size_ = 0;
-    bool has_map_version_ = true;
-    bool has_body_md5_ = true;
+ public:
+  MapNodeIndex node_index_;
+  MapVersion map_version_ = MapVersion::UNKNOWN;
+  unsigned char body_md5_[MD5LENTH] = {0};
+  unsigned int body_size_ = 0;
+  bool has_map_version_ = true;
+  bool has_body_md5_ = true;
 };
 
-} // msf
-} // localization
-} // apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_NODE_CONFIG_H
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_NODE_CONFIG_H

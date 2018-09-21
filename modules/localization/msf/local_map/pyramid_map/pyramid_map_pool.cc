@@ -19,18 +19,16 @@ namespace apollo {
 namespace localization {
 namespace msf {
 
-PyramidMapNodePool::PyramidMapNodePool(unsigned int pool_size, 
-                                    unsigned int thread_size) 
-    : BaseMapNodePool(pool_size, thread_size) { 
-}
+PyramidMapNodePool::PyramidMapNodePool(unsigned int pool_size,
+                                       unsigned int thread_size)
+    : BaseMapNodePool(pool_size, thread_size) {}
 
-PyramidMapNodePool::~PyramidMapNodePool() {
-}
+PyramidMapNodePool::~PyramidMapNodePool() {}
 
 BaseMapNode* PyramidMapNodePool::AllocNewMapNode() {
-    return new PyramidMapNode();
+  return new PyramidMapNode();
 }
 
-} // namespace msf
-} // namespace localization
-} // namespace apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo

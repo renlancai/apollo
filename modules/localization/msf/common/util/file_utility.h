@@ -17,9 +17,9 @@
 #ifndef MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_
 #define MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_
 
-#include <stdio.h>  
-#include <node/openssl/md5.h>  
-#include <string>  
+#include <node/openssl/md5.h>
+#include <stdio.h>
+#include <string>
 
 namespace apollo {
 namespace localization {
@@ -30,19 +30,16 @@ const size_t CHAR_MD5LENTH = 33;
 
 /**@brief Compute file md5 given a file path. */
 void ComputeFileMd5(const std::string &file_path,
-                      unsigned char res[UCHAR_MD5LENTH]);
-void ComputeFileMd5(const std::string &file_path,
-                      char res[CHAR_MD5LENTH]);
+                    unsigned char res[UCHAR_MD5LENTH]);
+void ComputeFileMd5(const std::string &file_path, char res[CHAR_MD5LENTH]);
 /**@brief Compute file md5 given a binary chunk. */
-void ComputeBinaryMd5(const unsigned char* binary,
-                        const unsigned int &size,
-                        unsigned char res[UCHAR_MD5LENTH]);
-void ComputeBinaryMd5(const unsigned char* binary,
-                        const unsigned int &size,
-                        char res[CHAR_MD5LENTH]);
+void ComputeBinaryMd5(const unsigned char *binary, unsigned int size,
+                      unsigned char res[UCHAR_MD5LENTH]);
+void ComputeBinaryMd5(const unsigned char *binary, unsigned int size,
+                      char res[CHAR_MD5LENTH]);
 
-}  // msf
-}  // localization
-}  // apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif // MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_
+#endif  // MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_

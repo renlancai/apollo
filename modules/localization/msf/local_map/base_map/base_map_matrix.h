@@ -17,8 +17,8 @@
 #ifndef MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_MATRIX_H
 #define MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_MATRIX_H
 
-#include <vector>
 #include <assert.h>
+#include <vector>
 #include "modules/localization/msf/local_map/base_map/base_map_fwd.h"
 #include "opencv2/opencv.hpp"
 
@@ -28,27 +28,27 @@ namespace msf {
 
 /**@brief The data structure of the map cells in a map node. */
 class BaseMapMatrix {
-public:
-    /**@brief The default constructor. */
-    BaseMapMatrix();
-    /**@brief The deconstructor. */
-    virtual ~BaseMapMatrix();
-    /**@brief The copy constructor. */
-    explicit BaseMapMatrix(const BaseMapMatrix& map_matrix);
-    /**@brief Initialize the map matrix. */
-    virtual void Init(const BaseMapConfig& config) = 0;
-    /**@brief Reset map cells data. */
-//    virtual void Reset(const BaseMapConfig* config) = 0;
-    /**@brief Reset map cells data. */
-    virtual void Reset() = 0;
-    /**@brief get intensity image of node. */
-    virtual bool GetIntensityImg(cv::Mat* intensity_img) const = 0;
-    /**@brief get altitude image of node. */
-    virtual bool GetAltitudeImg(cv::Mat* altitude_img) const = 0;
+ public:
+  /**@brief The default constructor. */
+  BaseMapMatrix();
+  /**@brief The deconstructor. */
+  virtual ~BaseMapMatrix();
+  /**@brief The copy constructor. */
+  explicit BaseMapMatrix(const BaseMapMatrix& map_matrix);
+  /**@brief Initialize the map matrix. */
+  virtual void Init(const BaseMapConfig& config) = 0;
+  /**@brief Reset map cells data. */
+  //    virtual void Reset(const BaseMapConfig* config) = 0;
+  /**@brief Reset map cells data. */
+  virtual void Reset() = 0;
+  /**@brief get intensity image of node. */
+  virtual bool GetIntensityImg(cv::Mat* intensity_img) const = 0;
+  /**@brief get altitude image of node. */
+  virtual bool GetAltitudeImg(cv::Mat* altitude_img) const = 0;
 };
 
-} // namespace msf
-} // namespace localization
-} // namespace apollo
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_MATRIX_H
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_MATRIX_H

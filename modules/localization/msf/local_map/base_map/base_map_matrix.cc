@@ -20,17 +20,12 @@ namespace apollo {
 namespace localization {
 namespace msf {
 
-BaseMapMatrix::BaseMapMatrix() {
-}
+BaseMapMatrix::BaseMapMatrix() {}
 
-BaseMapMatrix::~BaseMapMatrix() {
-}
+BaseMapMatrix::~BaseMapMatrix() {}
 
-BaseMapMatrix::BaseMapMatrix(const BaseMapMatrix& map_matrix) {
-}
+BaseMapMatrix::BaseMapMatrix(const BaseMapMatrix& map_matrix) {}
 
-} // map
-} // namespace localization
-} // namespace adu
-
-
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo

@@ -24,25 +24,27 @@ namespace localization {
 namespace msf {
 
 class BaseMapMatrixHandler {
-public:
-    BaseMapMatrixHandler() {}
-    virtual ~BaseMapMatrixHandler() {}
-    /**@brief Load the map cell from a binary chunk.
-     * @param <return> The size read (the real size of object).
-     */
-    virtual unsigned int LoadBinary(const unsigned char* buf, BaseMapMatrix* matrix) = 0;
-    /**@brief Create the binary. Serialization of the object.
-     * @param <buf, buf_size> The buffer and its size.
-     * @param <return> The required or the used size of is returned.
-     */
-    virtual unsigned int CreateBinary(const BaseMapMatrix* matrix, 
-                                    unsigned char * buf, unsigned int buf_size) = 0;
-    /**@brief Get the binary size of the object. */
-    virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix) = 0;
+ public:
+  BaseMapMatrixHandler() {}
+  virtual ~BaseMapMatrixHandler() {}
+  /**@brief Load the map cell from a binary chunk.
+   * @param <return> The size read (the real size of object).
+   */
+  virtual unsigned int LoadBinary(const unsigned char* buf,
+                                  BaseMapMatrix* matrix) = 0;
+  /**@brief Create the binary. Serialization of the object.
+   * @param <buf, buf_size> The buffer and its size.
+   * @param <return> The required or the used size of is returned.
+   */
+  virtual unsigned int CreateBinary(const BaseMapMatrix* matrix,
+                                    unsigned char* buf,
+                                    unsigned int buf_size) = 0;
+  /**@brief Get the binary size of the object. */
+  virtual unsigned int GetBinarySize(const BaseMapMatrix* matrix) = 0;
 };
 
-} // map
-} // localization
-} // adu
+}  // namespace msf
+}  // namespace localization
+}  // namespace apollo
 
-#endif //MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_FWD_H
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_FWD_H

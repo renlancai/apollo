@@ -82,12 +82,12 @@ bool GetAllMapIndex(const std::string& src_map_folder,
 }  // namespace localization
 }  // namespace apollo
 
+using apollo::localization::msf::MapNodeIndex;
 using apollo::localization::msf::PyramidMap;
 using apollo::localization::msf::PyramidMapConfig;
 using apollo::localization::msf::PyramidMapMatrix;
 using apollo::localization::msf::PyramidMapNode;
 using apollo::localization::msf::PyramidMapNodePool;
-using apollo::localization::msf::MapNodeIndex;
 
 int main(int argc, char** argv) {
   boost::program_options::options_description boost_desc("Allowed options");
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
 
   std::cout << "lossy map directory structure has built." << std::endl;
 
-//  PyramidMapConfig lossy_config("lossy_map");
+  //  PyramidMapConfig lossy_config("lossy_map");
   PyramidMapNodePool lossy_map_node_pool(25, 8);
   lossy_map_node_pool.Initial(&config_transform_lossy);
   PyramidMap lossy_map(&config_transform_lossy);
@@ -183,21 +183,18 @@ int main(int argc, char** argv) {
     int cols = lossless_config.map_node_size_x_;
     for (int row = 0; row < rows; ++row) {
       for (int col = 0; col < cols; ++col) {
-        const float *intensity = lossless_matrix.GetIntensitySafe(row, col);
-        const float *intensity_var = lossless_matrix.GetIntensityVarSafe(row, col);
-        const unsigned int *count = lossless_matrix.GetCountSafe(row, col);
+        const float* intensity = lossless_matrix.GetIntensitySafe(row, col);
+        const float* intensity_var =
+            lossless_matrix.GetIntensityVarSafe(row, col);
+        const unsigned int* count = lossless_matrix.GetCountSafe(row, col);
         // Read altitude
-        const float *altitude_avg = lossless_matrix.GetAltitudeSafe(row, col);
-        const float *altitude_var = lossless_matrix.GetAltitudeVarSafe(row, col);
-        const float *altitude_ground = lossless_matrix.GetGroundAltitudeSafe(row, col);
-        const unsigned int *ground_count = lossless_matrix.GetGroundCountSafe(row, col);
-//        bool is_ground_useful = false;
-//        if (ground_count) {
-//          is_ground_useful = true;
-//        } else {
-//          is_ground_useful = false;
-//        }
-
+        const float* altitude_avg = lossless_matrix.GetAltitudeSafe(row, col);
+        const float* altitude_var =
+            lossless_matrix.GetAltitudeVarSafe(row, col);
+        const float* altitude_ground =
+            lossless_matrix.GetGroundAltitudeSafe(row, col);
+        const unsigned int* ground_count =
+            lossless_matrix.GetGroundCountSafe(row, col);
         if (intensity) {
           lossy_matrix.SetIntensitySafe(*intensity, row, col);
         }

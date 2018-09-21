@@ -28,12 +28,12 @@
 const unsigned int CAR_SENSOR_LASER_NUMBER = 64;
 
 using apollo::localization::msf::FeatureXYPlane;
+using apollo::localization::msf::MapNodeIndex;
 using apollo::localization::msf::PyramidMap;
 using apollo::localization::msf::PyramidMapConfig;
 using apollo::localization::msf::PyramidMapMatrix;
 using apollo::localization::msf::PyramidMapNode;
 using apollo::localization::msf::PyramidMapNodePool;
-using apollo::localization::msf::MapNodeIndex;
 typedef apollo::localization::msf::FeatureXYPlane::PointT PclPointT;
 typedef apollo::localization::msf::FeatureXYPlane::PointCloudT PclPointCloudT;
 typedef apollo::localization::msf::FeatureXYPlane::PointCloudPtrT
@@ -49,10 +49,11 @@ bool ParseCommandLine(int argc, char* argv[],
       // ("use_plane_fitting_ransac",
       // boost::program_options::value<bool>()->required(),
       //  "use plane fitting ransac")
-      ("pcd_folders", boost::program_options::value<std::vector<std::string>>()
-                          ->multitoken()
-                          ->composing()
-                          ->required(),
+      ("pcd_folders",
+       boost::program_options::value<std::vector<std::string>>()
+           ->multitoken()
+           ->composing()
+           ->required(),
        "pcd folders(repeated)")(
           "pose_files",
           boost::program_options::value<std::vector<std::string>>()
@@ -281,14 +282,13 @@ int main(int argc, char** argv) {
         Eigen::Vector3d& pt3d_local = velodyne_frame.pt3ds[i];
         unsigned char intensity = velodyne_frame.intensities[i];
         Eigen::Vector3d pt3d_global = velodyne_frame.pose * pt3d_local;
-        MapNodeIndex map_node_index = 
-          MapNodeIndex::GetMapNodeIndex(loss_less_config,
-            pt3d_global, resolution_id, zone_id);
-        PyramidMapNode* map_node = 
-          dynamic_cast<PyramidMapNode*>(map.GetMapNodeSafe(map_node_index));
+        MapNodeIndex map_node_index = MapNodeIndex::GetMapNodeIndex(
+            loss_less_config, pt3d_global, resolution_id, zone_id);
+        PyramidMapNode* map_node =
+            dynamic_cast<PyramidMapNode*>(map.GetMapNodeSafe(map_node_index));
         map_node->GetCoordinate(pt3d_global, &col, &row);
-        PyramidMapMatrix& map_matrix = 
-          dynamic_cast<PyramidMapMatrix&>(map_node->GetMapCellMatrix());
+        PyramidMapMatrix& map_matrix =
+            dynamic_cast<PyramidMapMatrix&>(map_node->GetMapCellMatrix());
         map_matrix.SetIntensitySafe(intensity, row, col);
       }
 
@@ -316,14 +316,13 @@ int main(int argc, char** argv) {
               static_cast<unsigned char>(plane_pt.intensity);
           Eigen::Vector3d pt3d_global = velodyne_frame.pose * pt3d_local_double;
           float ground_altitude = pt3d_global[2];
-          MapNodeIndex map_node_index = 
-            MapNodeIndex::GetMapNodeIndex(loss_less_config,
-              pt3d_global, resolution_id, zone_id);
-          PyramidMapNode* map_node = 
-            dynamic_cast<PyramidMapNode*>(map.GetMapNodeSafe(map_node_index));
+          MapNodeIndex map_node_index = MapNodeIndex::GetMapNodeIndex(
+              loss_less_config, pt3d_global, resolution_id, zone_id);
+          PyramidMapNode* map_node =
+              dynamic_cast<PyramidMapNode*>(map.GetMapNodeSafe(map_node_index));
           map_node->GetCoordinate(pt3d_global, &col, &row);
-          PyramidMapMatrix& map_matrix = 
-            dynamic_cast<PyramidMapMatrix&>(map_node->GetMapCellMatrix());
+          PyramidMapMatrix& map_matrix =
+              dynamic_cast<PyramidMapMatrix&>(map_node->GetMapCellMatrix());
           map_matrix.SetIntensitySafe(intensity, row, col);
           map_matrix.SetGroundAltitudeSafe(ground_altitude, row, col);
         }
@@ -342,41 +341,42 @@ int main(int argc, char** argv) {
       unsigned int resolution_id = 0;
       unsigned int row = 0;
       unsigned int col = 0;
-      MapNodeIndex map_node_index = 
-        MapNodeIndex::GetMapNodeIndex(loss_less_config,
-          pt3d, resolution_id, zone_id);
-      PyramidMapNode* map_node = 
-        dynamic_cast<PyramidMapNode*>(map.GetMapNodeSafe(map_node_index));
+      MapNodeIndex map_node_index = MapNodeIndex::GetMapNodeIndex(
+          loss_less_config, pt3d, resolution_id, zone_id);
+      PyramidMapNode* map_node =
+          dynamic_cast<PyramidMapNode*>(map.GetMapNodeSafe(map_node_index));
       map_node->GetCoordinate(pt3d, &col, &row);
-      PyramidMapMatrix& map_matrix = 
-        dynamic_cast<PyramidMapMatrix&>(map_node->GetMapCellMatrix());
+      PyramidMapMatrix& map_matrix =
+          dynamic_cast<PyramidMapMatrix&>(map_node->GetMapCellMatrix());
 
       if (use_plane_inliers_only) {
         // Use the altitudes from layer 0 (layer 1 internally in the Map).
         std::vector<unsigned int> layer_counts;
-        const unsigned int *ground_count = map_matrix.GetGroundCountSafe(row, col);
+        const unsigned int* ground_count =
+            map_matrix.GetGroundCountSafe(row, col);
         if (!ground_count) {
           AERROR << "No ground layer, skip.";
           continue;
         }
         if (*ground_count > 0) {
-          //std::vector<float> layer_alts;
-          //map.GetAltSafe(pt3d, zone_id, resolution_id, &layer_alts);
-          const float *ground_altitude = map_matrix.GetGroundAltitudeSafe(row, col);
+          // std::vector<float> layer_alts;
+          // map.GetAltSafe(pt3d, zone_id, resolution_id, &layer_alts);
+          const float* ground_altitude =
+              map_matrix.GetGroundAltitudeSafe(row, col);
           if (!ground_altitude) {
             AERROR << "No ground points, skip.";
             continue;
           }
-         // float alt = layer_alts[layer_id];
+          // float alt = layer_alts[layer_id];
           double height_diff = pt3d[2] - *ground_altitude;
           VarianceOnline(&mean_height_diff, &var_height_diff,
                          &count_height_diff, height_diff);
         }
       } else {
         // Use the altitudes from all layers
-        const unsigned int *count = map_matrix.GetCountSafe(row, col);
+        const unsigned int* count = map_matrix.GetCountSafe(row, col);
         if (*count > 0) {
-          const float *alt = map_matrix.GetAltitudeSafe(row, col);
+          const float* alt = map_matrix.GetAltitudeSafe(row, col);
           double height_diff = pt3d[2] - *alt;
           VarianceOnline(&mean_height_diff, &var_height_diff,
                          &count_height_diff, height_diff);

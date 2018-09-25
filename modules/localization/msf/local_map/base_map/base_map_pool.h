@@ -17,11 +17,10 @@
 #ifndef MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_POOL_H
 #define MODULES_LOCALIZATION_MSF_LOCAL_MAP_BASE_MAP_BASE_MAP_POOL_H
 
+#include <Eigen/Core>
 #include <list>
 #include <set>
-
 #include "boost/thread.hpp"
-
 #include "modules/localization/msf/common/util/threadpool.h"
 #include "modules/localization/msf/local_map/base_map/base_map_fwd.h"
 
@@ -65,13 +64,13 @@ class BaseMapNodePool {
   /**@brief new a map node. */
   virtual BaseMapNode* AllocNewMapNode() = 0;
   /**@brief init a map node. */
-  void InitNewMapNode(BaseMapNode* node);
-  /**@brief Finalize a map node, before reset or delloc the map node. */
-  void FinalizeMapNode(BaseMapNode* node);
+  virtual void InitNewMapNode(BaseMapNode* node);
+  /**@brief finalize a map node, before reset or delloc the map node. */
+  virtual void FinalizeMapNode(BaseMapNode* node);
   /**@brief delloc a map node. */
-  void DellocMapNode(BaseMapNode* node);
+  virtual void DellocMapNode(BaseMapNode* node);
   /**@brief reset a map node. */
-  void ResetMapNode(BaseMapNode* node);
+  virtual void ResetMapNode(BaseMapNode* node);
 
  protected:
   /**@brief The flag of pool auto expand. */

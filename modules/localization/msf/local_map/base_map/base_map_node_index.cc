@@ -15,17 +15,20 @@
  *****************************************************************************/
 
 #include "modules/localization/msf/local_map/base_map/base_map_node_index.h"
-
+#include <iostream>
 #include <sstream>
 #include <string>
-
-#include "modules/common/log.h"
 
 namespace apollo {
 namespace localization {
 namespace msf {
 
-MapNodeIndex::MapNodeIndex() {}
+MapNodeIndex::MapNodeIndex() {
+  resolution_id_ = 0;
+  zone_id_ = 50;
+  m_ = 0;
+  n_ = 0;
+}
 
 bool MapNodeIndex::operator<(const MapNodeIndex& index) const {
   if (resolution_id_ < index.resolution_id_) {
@@ -74,7 +77,7 @@ MapNodeIndex MapNodeIndex::GetMapNodeIndex(const BaseMapConfig& option,
                                            const Eigen::Vector3d& coordinate,
                                            unsigned int resolution_id,
                                            int zone_id) {
-  Eigen::Vector2d coord2d(coordinate[0], coordinate[1]);
+  Vector2d coord2d(coordinate[0], coordinate[1]);
   return GetMapNodeIndex(option, coord2d, resolution_id, zone_id);
 }
 
@@ -82,7 +85,7 @@ MapNodeIndex MapNodeIndex::GetMapNodeIndex(const BaseMapConfig& option,
                                            const Eigen::Vector2d& coordinate,
                                            unsigned int resolution_id,
                                            int zone_id) {
-  DCHECK_LT(resolution_id, option.map_resolutions_.size());
+  // assert(resolution_id < option.map_resolutions_.size());
   MapNodeIndex index;
   index.resolution_id_ = resolution_id;
   index.zone_id_ = zone_id;
@@ -92,13 +95,14 @@ MapNodeIndex MapNodeIndex::GetMapNodeIndex(const BaseMapConfig& option,
   int m = static_cast<int>(
       (coordinate[1] - option.map_range_.GetMinY()) /
       (option.map_node_size_y_ * option.map_resolutions_[resolution_id]));
-  if (n >= 0 && m >= 0 &&
-      n < static_cast<int>(GetMapIndexRangeEast(option, resolution_id)) &&
-      m < static_cast<int>(GetMapIndexRangeNorth(option, resolution_id))) {
+  if (n >= 0 && m >= 0 && n < GetMapIndexRangeEast(option, resolution_id) &&
+      m < GetMapIndexRangeNorth(option, resolution_id)) {
     index.m_ = m;
     index.n_ = n;
   } else {
-    DCHECK(false);  // should never reach here
+    std::cerr << "MapNodeIndex::get_map_node_index illegal n: " << n
+              << ",m: " << m << std::endl;
+    // assert(0 == 1); // should never reach here
   }
   return index;
 }

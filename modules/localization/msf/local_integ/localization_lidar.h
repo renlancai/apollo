@@ -21,11 +21,11 @@
 
 #include "modules/common/log.h"
 #include "modules/localization/msf/local_map/base_map/base_map_node_index.h"
-#include "modules/localization/msf/local_map/lossy_map/lossy_map_2d.h"
-#include "modules/localization/msf/local_map/lossy_map/lossy_map_config_2d.h"
-#include "modules/localization/msf/local_map/lossy_map/lossy_map_matrix_2d.h"
-#include "modules/localization/msf/local_map/lossy_map/lossy_map_node_2d.h"
-#include "modules/localization/msf/local_map/lossy_map/lossy_map_pool_2d.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_config.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_matrix.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_node.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_pool.h"
 #include "modules/localization/msf/local_integ/localization_params.h"
 #include "include/lidar_locator.h"
 
@@ -69,13 +69,12 @@ struct MapNodeData {
 
 class LocalizationLidar {
  public:
-typedef apollo::localization::msf::LossyMap2D LossyMap;
+typedef apollo::localization::msf::PyramidMap LossyMap;
 typedef apollo::localization::msf::MapNodeIndex MapNodeIndex;
-typedef apollo::localization::msf::LossyMapNode2D LossyMapNode;
-typedef apollo::localization::msf::LossyMapNodePool2D LossyMapNodePool;
-typedef apollo::localization::msf::LossyMapMatrix2D LossyMapMatrix;
-typedef apollo::localization::msf::LossyMapCell2D LossyMapCell;
-typedef apollo::localization::msf::LossyMapConfig2D LossyMapConfig;
+typedef apollo::localization::msf::PyramidMapNode PyramidMapNode;
+typedef apollo::localization::msf::PyramidMapNodePool PyramidMapNodePool;
+typedef apollo::localization::msf::PyramidMapMatrix PyramidMapMatrix;
+typedef apollo::localization::msf::PyramidMapConfig PyramidMapConfig;
 
  public:
   /**@brief The constructor. */
@@ -122,9 +121,9 @@ typedef apollo::localization::msf::LossyMapConfig2D LossyMapConfig;
   double resolution_;
   MapNodeData* lidar_map_node_;
 
-  LossyMapConfig config_;
-  LossyMap map_;
-  LossyMapNodePool map_node_pool_;
+  PyramidMapConfig config_;
+  PyramidMap map_;
+  PyramidMapNodePool map_node_pool_;
   Eigen::Vector2d map_left_top_corner_;
   unsigned int resolution_id_;
   int zone_id_;

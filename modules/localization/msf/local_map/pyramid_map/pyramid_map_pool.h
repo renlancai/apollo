@@ -14,18 +14,34 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "modules/localization/msf/local_map/base_map/base_map_matrix.h"
+#ifndef MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_PYRAMID_MAP_POOL_H
+#define MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_PYRAMID_MAP_POOL_H
+
+#include "modules/localization/msf/local_map/base_map/base_map_config.h"
+#include "modules/localization/msf/local_map/base_map/base_map_pool.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_matrix.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_node.h"
 
 namespace apollo {
 namespace localization {
 namespace msf {
 
-BaseMapMatrix::BaseMapMatrix() {}
+class PyramidMapNodePool : public BaseMapNodePool {
+ public:
+  /**@brief Constructor
+   * @param <pool_size> The memory pool size.
+   * @param <thread_size> The thread pool size.
+   */
+  PyramidMapNodePool(unsigned int pool_size, unsigned int thread_size);
+  /**@brief Destructor */
+  virtual ~PyramidMapNodePool();
 
-BaseMapMatrix::~BaseMapMatrix() {}
-
-BaseMapMatrix::BaseMapMatrix(const BaseMapMatrix& map_matrix) {}
+ private:
+  virtual BaseMapNode* AllocNewMapNode();
+};
 
 }  // namespace msf
 }  // namespace localization
 }  // namespace apollo
+
+#endif  // MODULES_LOCALIZATION_MSF_LOCAL_MAP_PYRAMID_MAP_PYRAMID_MAP_POOL_H

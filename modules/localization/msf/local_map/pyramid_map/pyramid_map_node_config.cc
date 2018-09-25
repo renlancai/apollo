@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *****************************************************************************/
-
-#include "modules/localization/msf/local_map/base_map/base_map_matrix.h"
+#include "modules/localization/msf/local_map/pyramid_map/pyramid_map_node_config.h"
 
 namespace apollo {
 namespace localization {
 namespace msf {
 
-BaseMapMatrix::BaseMapMatrix() {}
+PyramidMapNodeConfig::PyramidMapNodeConfig() {}
 
-BaseMapMatrix::~BaseMapMatrix() {}
+PyramidMapNodeConfig::~PyramidMapNodeConfig() {}
 
-BaseMapMatrix::BaseMapMatrix(const BaseMapMatrix& map_matrix) {}
+BaseMapNodeConfig* PyramidMapNodeConfig::Clone() {
+  PyramidMapNodeConfig* map_node_config = new PyramidMapNodeConfig();
+  map_node_config->node_index_ = node_index_;
+  map_node_config->map_version_ = map_version_;
+  memcpy(map_node_config->body_md5_, body_md5_, sizeof(body_md5_));
+  map_node_config->body_size_ = body_size_;
+  map_node_config->has_map_version_ = has_map_version_;
+  map_node_config->has_body_md5_ = has_body_md5_;
+
+  return dynamic_cast<BaseMapNodeConfig*>(map_node_config);
+}
 
 }  // namespace msf
 }  // namespace localization

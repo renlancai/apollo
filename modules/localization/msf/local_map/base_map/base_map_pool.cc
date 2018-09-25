@@ -15,8 +15,6 @@
  *****************************************************************************/
 
 #include "modules/localization/msf/local_map/base_map/base_map_pool.h"
-
-#include "modules/common/log.h"
 #include "modules/localization/msf/local_map/base_map/base_map_config.h"
 #include "modules/localization/msf/local_map/base_map/base_map_node.h"
 #include "modules/localization/msf/local_map/base_map/base_map_node_index.h"
@@ -94,14 +92,16 @@ void BaseMapNodePool::FreeMapNodeTask(BaseMapNode* map_node) {
   {
     boost::unique_lock<boost::mutex> lock(mutex_);
     typename std::set<BaseMapNode*>::iterator f = busy_nodes_.find(map_node);
-    DCHECK(f != busy_nodes_.end());
+    if (f == busy_nodes_.end()) {
+      throw "[BaseMapNodePool::free_map_node_task] f == busy_nodes_.end()";
+    }
     free_list_.push_back(*f);
     busy_nodes_.erase(f);
   }
 }
 
 void BaseMapNodePool::InitNewMapNode(BaseMapNode* node) {
-  node->InitMapMatrix(map_config_);
+  node->Init(map_config_);
   return;
 }
 

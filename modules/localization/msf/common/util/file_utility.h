@@ -14,18 +14,32 @@
  * limitations under the License.
  *****************************************************************************/
 
-#include "modules/localization/msf/local_map/base_map/base_map_matrix.h"
+#ifndef MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_
+#define MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_
+
+#include <node/openssl/md5.h>
+#include <stdio.h>
+#include <string>
 
 namespace apollo {
 namespace localization {
 namespace msf {
 
-BaseMapMatrix::BaseMapMatrix() {}
+const size_t UCHAR_MD5LENTH = 16;
+const size_t CHAR_MD5LENTH = 33;
 
-BaseMapMatrix::~BaseMapMatrix() {}
-
-BaseMapMatrix::BaseMapMatrix(const BaseMapMatrix& map_matrix) {}
+/**@brief Compute file md5 given a file path. */
+void ComputeFileMd5(const std::string &file_path,
+                    unsigned char res[UCHAR_MD5LENTH]);
+void ComputeFileMd5(const std::string &file_path, char res[CHAR_MD5LENTH]);
+/**@brief Compute file md5 given a binary chunk. */
+void ComputeBinaryMd5(const unsigned char *binary, unsigned int size,
+                      unsigned char res[UCHAR_MD5LENTH]);
+void ComputeBinaryMd5(const unsigned char *binary, unsigned int size,
+                      char res[CHAR_MD5LENTH]);
 
 }  // namespace msf
 }  // namespace localization
 }  // namespace apollo
+
+#endif  // MODULES_LOCALIZATION_MSF_COMMON_FILE_UTILITY_H_

@@ -131,4 +131,34 @@ proto_library(
     ],
 )
 
+##for localization_gnss namespace
+#gnss_obs
+#cc_proto_library(
+#    name = "localization_gnss_raw_observation_proto",
+#    deps = [
+#        ":localization_gnss_raw_observation_proto_lib",
+#    ],
+#)   
+    
+#proto_library(
+#    name = "localization_gnss_raw_observation_proto_lib",
+#    srcs = ["localization_gnss_raw_observation.proto"],
+#)
+
+#gnss result
+#cc_proto_library(
+#    name = "localization_gnss_pnt_result_proto",
+#    deps = [
+#        ":localization_gnss_pnt_result_proto_lib",
+#    ],
+#)
+
+#proto_library(
+#    name = "localization_gnss_pnt_result_proto_lib",
+#    srcs = ["localization_gnss_pnt_result.proto"],
+#    deps = [
+#        ":localization_gnss_raw_observation_proto_lib",
+#    ],
+#)
+
 cpplint()

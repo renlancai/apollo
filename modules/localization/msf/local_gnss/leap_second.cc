@@ -15,8 +15,8 @@
  *****************************************************************************/
 
 #include "modules/localization/msf/local_gnss/leap_second.h"
-
 #include "modules/localization/msf/local_gnss/gnss_utility.hpp"
+
 namespace apollo {
 namespace localization {
 namespace local_gnss {

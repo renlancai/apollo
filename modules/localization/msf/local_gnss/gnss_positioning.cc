@@ -19,7 +19,6 @@
 #include <Eigen/Eigen>
 #include <vector>
 #include "modules/localization/msf/local_gnss/atmosphere.h"
-#include "modules/localization/msf/local_gnss/gnss_debug_tools.hpp"
 #include "modules/localization/msf/local_gnss/gnss_utility.hpp"
 
 namespace apollo {
@@ -57,15 +56,18 @@ void GnssPntSolver::Initialize() {
   band_to_solve_.resize(0);
   band_to_solve_.push_back(apollo::drivers::gnss::GPS_L1);
   band_to_solve_.push_back(apollo::drivers::gnss::GPS_L2);
-  // band_to_solve_.push_back(apollo::drivers::gnss::GPS_L5);//not supported yet
+  // not evaluated yet
+  // band_to_solve_.push_back(apollo::drivers::gnss::GPS_L5);
 
   band_to_solve_.push_back(apollo::drivers::gnss::BDS_B1);
   band_to_solve_.push_back(apollo::drivers::gnss::BDS_B2);
-  // band_to_solve_.push_back(apollo::drivers::gnss::BDS_B3);//not supported yet
+  // not evaluated yet
+  // band_to_solve_.push_back(apollo::drivers::gnss::BDS_B3);
 
   band_to_solve_.push_back(apollo::drivers::gnss::GLO_G1);
   band_to_solve_.push_back(apollo::drivers::gnss::GLO_G2);
-  // band_to_solve_.push_back(apollo::drivers::gnss::GLO_G3);//not supported yet
+  // not evaluated yet
+  // band_to_solve_.push_back(apollo::drivers::gnss::GLO_G3);
 
   GetGnssSystemToSolve();
   ClearSequential();
@@ -77,11 +79,9 @@ void GnssPntSolver::Initialize() {
   rover_preprocessor_.SetGlobalEphemerisPtr(&global_ephemeris_);
   baser_preprocessor_.SetGlobalEphemerisPtr(&global_ephemeris_);
 
-  //  2 mm * 2 mm for unit weight
   const double unit_weight = 1.0 * 1.0;
   //  sqrt(2) for single difference
-  double phase_p = 2 * 0.005 * 0.005;
-  phase_p = 2 * 0.01 * 0.01;
+  double phase_p = 2 * 0.01 * 0.01;
   phase_precision_ = phase_p / unit_weight;
 
   glonass_ifb_ = 0.0;
@@ -98,7 +98,8 @@ void GnssPntSolver::Initialize() {
   SetMaxGpsEphSize(num_day * num_per_day_gps);
   SetMaxBdsEphSize(num_day * num_per_day_bds);
   SetMaxGloEphSize(num_day * num_per_day_glo);
-  // debug
+  
+  // debug flag
   debug_print_ = false;
   counter_for_low_ratio_ = 0;
   num_sd_phase_recursive_ = 0;
@@ -133,7 +134,6 @@ bool GnssPntSolver::SynchronizeBaser(
   double t_baser =
       baser_obs->gnss_week() * sec_per_week + baser_obs->gnss_second_s();
   if (t_rover > t_baser) {
-    // await new baser obs but now return
     return true;
   }
   if (fabs(t_baser - t_rover) < gap_threshold) {
@@ -172,9 +172,10 @@ int GnssPntSolver::UpdateBaseCoor(const EpochObservation& rover_obs,
                      baser_obs.position_z());
   dis_gap = gnss_utility::GetDistance(temp, baser_coor_);
   if (dis_gap >= 0.03) {
-    // update baser coor
     SetBaserCoordinate(baser_obs.position_x(), baser_obs.position_y(),
                          baser_obs.position_z());
+    // TO DO: a more specific step would be employed to keep AR-Fiexed
+    // during base data source changing.
     ResetFixedRtk();
   }
   return 1;

@@ -17,8 +17,6 @@
 #ifndef MODULES_LOCALIZATION_MSF_LOCAL_GNSS_PVT_SATELLITE_H_
 #define MODULES_LOCALIZATION_MSF_LOCAL_GNSS_PVT_SATELLITE_H_
 
-#include <Eigen/Eigen>
-#include <list>
 #include <vector>
 #include <map>
 #include "modules/localization/msf/local_gnss/leap_second.h"

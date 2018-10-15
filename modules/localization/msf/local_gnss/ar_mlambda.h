@@ -55,7 +55,7 @@ class ARLambda {
 
   double Round(double x);
 
-  void SwapData(double &a, double &b); // NOLINT
+  void SwapData(double* a, double* b);
 
  private:
   // Q = L'*diag(D)*L

@@ -16,10 +16,11 @@
 
 #include "modules/localization/msf/local_gnss/pvt_satellite.h"
 #include <math.h>
+
 namespace apollo {
 namespace localization {
 namespace local_gnss {
-// ---------------- GPS --------------------------------------
+// ---------------- GPS (US)-------------------------------
 // L1 carrier frequency in Hz
 const double L1_FREQ_GPS = 1575.42e6;
 // L2 carrier frequency in Hz
@@ -33,11 +34,11 @@ const double L2_WAVELENGTH_GPS = 0.244210213425;
 // L5 carrier wavelength in meters.
 const double L5_WAVELENGTH_GPS = 0.254828049;
 
-// ---------------- GLONASS ----------------------------------
+// ---------------- GLONASS (RUS)-------------------------
 // f1(n) = 1602.0e6 + n * 562.5e3 Hz = 9 * (178 + n*0.0625) MHz
 // f2(n) = 1246.0e6 + n * 437.5e3 Hz = 7 * (178 + n*0.0625) MHz
-// where n is the time- and satellite-dependent 'frequency channel' as -7 <= n
-// <= 7
+// where n is the time- and satellite-dependent 'frequency channel'
+// as -7 <= n <= 7
 
 // L1 carrier base frequency in Hz.
 const double L1_FREQ_GLO = 1602.0e6;
@@ -52,7 +53,7 @@ const double L2_FREQ_STEP_GLO = 437.5e3;
 // L2 carrier wavelength in meters.
 const double L2_WAVELENGTH_GLO = 0.240603898876;
 
-// ---------------- Galileo ----------------------------------
+// ---------------- Galileo (EU)--------------------------
 // L1 (E1) carrier frequency in Hz
 const double L1_FREQ_GAL = L1_FREQ_GPS;
 // L5 (E5a) carrier frequency in Hz.
@@ -75,7 +76,7 @@ const double L7_WAVELENGTH_GAL = 0.24834937;
 // L8 carrier wavelength in meters.
 const double L8_WAVELENGTH_GAL = 0.251547001;
 
-// ---------------- BeiDou ----------------------------------
+// ---------------- BeiDou (CHN)-------------------------
 // L1 (B1) carrier frequency in Hz.
 const double L1_FREQ_BDS = 1561.098e6;
 // L2 (B2) carrier frequency in Hz.
@@ -90,7 +91,7 @@ const double L2_WAVELENGTH_BDS = 0.24834937;
 // L3 carrier wavelength in meters.
 const double L3_WAVELENGTH_BDS = 0.236332464604421;
 
-// ---------------- QZSS ----------------------------------
+// ---------------- QZSS (JPN)---------------------------
 // QZS-L1 carrier frequency in Hz.
 const double L1_FREQ_QZS = L1_FREQ_GPS;
 // QZS-L2 carrier frequency in Hz.
@@ -109,7 +110,7 @@ const double L5_WAVELENGTH_QZS = L5_WAVELENGTH_GPS;
 // QZS-LEX(6) carrier wavelength in meters.
 const double L6_WAVELENGTH_QZS = L6_WAVELENGTH_GAL;
 
-// ---------------- Geostationary (SBAS) ---------------------
+// ---------------- GEO (SBAS) ---------------------
 // GEO-L1 carrier frequency in Hz
 const double L1_FREQ_GEO = L1_FREQ_GPS;
 // GEO-L5 carrier frequency in Hz.
@@ -232,22 +233,17 @@ bool SatelliteInterface::GetPosVelClock(
       flag = gps_eph_.GetPosVelClock(
           sat_prn, gnss_week_num, time_signal_transimited, time_signal_duration,
           position, velocity, clk_bias, clk_drift, eph_toe);
-      // flag = false;
       break;
     case apollo::drivers::gnss::BDS_SYS:
       flag = bds_eph_.GetPosVelClock(sat_prn, bd_week_num, bds_obs_time,
                                       time_signal_duration, position, velocity,
                                       clk_bias, clk_drift, eph_toe);
-      // debug
-      // flag = false;
       break;
     case apollo::drivers::gnss::GLO_SYS:
       flag = glo_eph_.GetPosVelClock(sat_prn, gnss_week_num,
                                       time_signal_transimited - leap_second_s,
                                       time_signal_duration, position, velocity,
                                       clk_bias, clk_drift, eph_toe);
-      // debug
-      // flag = false;
       break;
     default:
       break;

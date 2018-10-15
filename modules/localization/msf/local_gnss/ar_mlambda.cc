@@ -148,10 +148,10 @@ double ARLambda::Round(double x) {
   return static_cast<int>(std::floor(x + 0.5));
 }
 
-void ARLambda::SwapData(double &a, double &b) {
-  double t(a);
-  a = b;
-  b = t;
+void ARLambda::SwapData(double* a, double* b) {
+  double t(*a);
+  *a = *b;
+  *b = t;
 }
 
 double ARLambda::GetGaussCdf(const double d) {
@@ -229,10 +229,10 @@ void ARLambda::Permute(Eigen::MatrixXd* low, std::vector<double>* diag,
   }
   (*low)(j + 1, j) = lam;
   for (int k = j + 2; k < n; k++) {
-    SwapData((*low)(k, j), (*low)(k, j + 1));
+    SwapData(&(*low)(k, j), &(*low)(k, j + 1));
   }
   for (int k = 0; k < n; k++) {
-    SwapData((*z_int)(k, j), (*z_int)(k, j + 1));
+    SwapData(&(*z_int)(k, j), &(*z_int)(k, j + 1));
   }
 }
 
@@ -360,9 +360,9 @@ int ARMLambda::SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
       if ((*square_res)[i] < (*square_res)[j]) {
         continue;
       }
-      SwapData((*square_res)[i], (*square_res)[j]);
+      SwapData(&(*square_res)[i], &(*square_res)[j]);
       for (k = 0; k < n; k++) {
-        SwapData((*z_int)(k, i), (*z_int)(k, j));
+        SwapData(&(*z_int)(k, i), &(*z_int)(k, j));
       }
     }
   }

@@ -15,7 +15,6 @@
  *****************************************************************************/
 
 #include "modules/localization/msf/local_gnss/gnss_positioning.h"
-#include <sys/time.h>
 #include <Eigen/Eigen>
 #include <vector>
 #include "modules/localization/msf/local_gnss/atmosphere.h"
@@ -102,7 +101,6 @@ bool GnssPntSolver::ExcludeSemiCycleSat(
 
 bool GnssPntSolver::DeleteElvCutoffSat(
     const double ele_cutoff, std::vector<SatelliteInfor>* sate_vector_used) {
-  // return true;
   std::vector<SatelliteInfor>::iterator it = sate_vector_used->begin();
   for (; it != sate_vector_used->end();) {
     if (it->elevation < ele_cutoff || it->multi_path == true) {
@@ -256,7 +254,7 @@ bool GnssPntSolver::ClearSequential() {
 Eigen::MatrixXd GnssPntSolver::SequentialLS(const Eigen::MatrixXd &btpb,
                                           const Eigen::MatrixXd &btpl) {
   if (btpb.rows() > btpb_.rows()) {
-    // ascending satellite
+    // ascending bands
     Eigen::MatrixXd temp_b = btpb_;
     Eigen::MatrixXd temp_l = btpl_;
     btpb_.resize(btpb.rows(), btpb.cols());

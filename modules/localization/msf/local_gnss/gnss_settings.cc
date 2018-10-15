@@ -15,8 +15,6 @@
  *****************************************************************************/
 
 #include "modules/localization/msf/local_gnss/gnss_positioning.h"
-#include <sys/time.h>
-#include <Eigen/Eigen>
 #include <vector>
 #include "modules/localization/msf/local_gnss/atmosphere.h"
 #include "modules/localization/msf/local_gnss/gnss_utility.hpp"
@@ -25,7 +23,7 @@ namespace apollo {
 namespace localization {
 namespace local_gnss {
 
-// interface for initialize
+// setting interface for initialize
 bool GnssPntSolver::SetPositionOption(const PositionOption position_option) {
   position_option_ = position_option;
   return true;

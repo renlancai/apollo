@@ -14,9 +14,9 @@
  * limitations under the License.
  *****************************************************************************/
 
+#include "modules/localization/msf/local_gnss/rinex_io.h"
 #include <string>
 #include "modules/localization/msf/local_gnss/gnss_utility.hpp"
-#include "modules/localization/msf/local_gnss/rinex_io.h"
 
 namespace apollo {
 namespace localization {

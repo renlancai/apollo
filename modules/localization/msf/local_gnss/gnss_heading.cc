@@ -15,7 +15,6 @@
  *****************************************************************************/
 
 #include "modules/localization/msf/local_gnss/gnss_positioning.h"
-#include <sys/time.h>
 #include <Eigen/Eigen>
 #include <vector>
 #include "modules/localization/msf/local_gnss/atmosphere.h"

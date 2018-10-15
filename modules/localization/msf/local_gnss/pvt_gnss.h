@@ -263,12 +263,9 @@ bool GnssPvt<T>::GetPosVelClock(const unsigned int sat_prn,
   if (current_eph.health() != 0) {
     return false;
   }
-  /*if (current_eph.sat_prn() != sat_prn) {
-      return false;
-  }*/
 
   *eph_toe = current_eph.week_num() *
-                 apollo::localization::local_gnss::SECOND_PER_WEEK +
+             apollo::localization::local_gnss::SECOND_PER_WEEK +
              current_eph.toe();
   GetClock(observe_time, current_eph, clk_bias, clk_drift);
   GetPositionVelocity(observe_time, current_eph, position, velocity);

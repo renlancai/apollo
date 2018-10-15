@@ -23,22 +23,26 @@
 namespace apollo {
 namespace localization {
 namespace local_gnss {
-class ARLambda {
+
+// Reference to: T. Z. X.-W. Chang, X. Yang, “MLAMBDA: a modified LAMBDA
+// method for integer least-squares estimation,” Journal of Geodesy, 2005
+
+class ARMLambda {
  public:
-  ARLambda() : squared_ratio_(0.0) {
+  ARMLambda() : squared_ratio_(0.0) {
     lower_bound_failure_rate_ar_ = 0.0;
     upper_bound_failure_rate_ar_ = 0.0;
     z_.resize(0, 0);
     qzz_.resize(0, 0);
   }
-  virtual ~ARLambda() {}
+  virtual ~ARMLambda() {}
 
  public:
   virtual bool ResolveIntegerAmbiguity(const Eigen::MatrixXd &amb_float,
                                          const Eigen::MatrixXd &amb_cov,
                                          Eigen::MatrixXd* amb_fix);
 
-  bool IsFixedSuccessfully(const double threshhold = 3.0);
+  bool IsFixedSuccessfully(const double threshhold = 4.0);
 
   double GetRatio();
 
@@ -58,7 +62,7 @@ class ARLambda {
   void SwapData(double* a, double* b);
 
  private:
-  // Q = L'*diag(D)*L
+  // Qxx = L' * diag(D) * L
   int Factorize(const Eigen::MatrixXd &qxx, Eigen::MatrixXd* low,
                 std::vector<double>* diag);
 
@@ -71,7 +75,7 @@ class ARLambda {
   void Reduct(Eigen::MatrixXd* low, std::vector<double>* diag,
                  Eigen::MatrixXd* z_int);
 
-  // modified lambda (m-lambda) SearchAmb
+  // lambda /m-lambda SearchAmb
   virtual int SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
                      const Eigen::MatrixXd &zs,
                      Eigen::MatrixXd* z_int,
@@ -79,14 +83,13 @@ class ARLambda {
                      const int &m = 2);
 
   // lambda/m-lambda integer least-square estimation
-  // a     Float parameters (n x 1)
-  // Q     Covariance matrix of float parameters (n x n)
-  // F     Fixed solutions (n x m)
-  // s     Sum of squared residuals of fixed solutions (1 x m)
-  // m     Number of fixed solutions
-  //       status (0:ok,other:error)
-  int Lambda(const Eigen::MatrixXd &A, const Eigen::MatrixXd &Q,
-             Eigen::MatrixXd* fix_amb, std::vector<double>* s,
+  // float_amb   Float parameters (n x 1)
+  // q_nn        Covariance matrix of float parameters (n x n)
+  // fix_amb     Fixed solutions (n x m)
+  // square_res  Sum of squared residuals of fixed solutions (1 x m)
+  // m           Number of fixed solutions
+  int Lambda(const Eigen::MatrixXd& float_amb, const Eigen::MatrixXd& q_nn,
+             Eigen::MatrixXd* fix_amb, std::vector<double>* square_res,
              const int &m = 2);
 
   double GetGaussCdf(const double d);
@@ -97,19 +100,6 @@ class ARLambda {
   double lower_bound_failure_rate_ar_;
   Eigen::MatrixXd z_;
   Eigen::MatrixXd qzz_;
-};
-
-class ARMLambda : public ARLambda {
- public:
-  ARMLambda() {}
-  virtual ~ARMLambda() {}
-
- private:
-  virtual int SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
-                     const Eigen::MatrixXd &zs,
-                     Eigen::MatrixXd* z_int,
-                     std::vector<double>* square_res,
-                     const int &m = 2);
 };
 
 }  // namespace local_gnss

@@ -469,9 +469,9 @@ class GnssPntSolver : public SensorPntSolver {
   DISALLOW_COPY_AND_ASSIGN(GnssPntSolver);
 };  // class GnssPntSolver
 
-class GnssDulaAntSolver : public GnssPntSolver {
+class GnssDualAntSolver : public GnssPntSolver {
  public:
-  GnssDulaAntSolver() { SetSynchTimeGapThreshold(0.001); }
+  GnssDualAntSolver() { SetSynchTimeGapThreshold(0.001); }
   void SetDualAntennaMode(bool dual_antenna_mode);
 
   bool SetDualAntLeverArm(const PointThreeDim& ant_primary,

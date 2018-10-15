@@ -98,7 +98,7 @@ void GnssPntSolver::Initialize() {
   SetMaxGpsEphSize(num_day * num_per_day_gps);
   SetMaxBdsEphSize(num_day * num_per_day_bds);
   SetMaxGloEphSize(num_day * num_per_day_glo);
-  
+
   // debug flag
   debug_print_ = false;
   counter_for_low_ratio_ = 0;
@@ -159,7 +159,7 @@ bool GnssPntSolver::SynchronizeBaser(
 
 int GnssPntSolver::UpdateBaseCoor(const EpochObservation& rover_obs,
                                     const EpochObservation& baser_obs) {
-  // for real time, consider baser coordinate update
+  // for real time application, consider baser coordinate update
   double dis_gap = 0.0;
   bool valid_base_coor = baser_obs.has_position_x() &&
                          baser_obs.has_position_y() &&
@@ -177,29 +177,6 @@ int GnssPntSolver::UpdateBaseCoor(const EpochObservation& rover_obs,
     // TO DO: a more specific step would be employed to keep AR-Fiexed
     // during base data source changing.
     ResetFixedRtk();
-  }
-  return 1;
-}
-
-int GnssDulaAntSolver::UpdateBaseCoor(const EpochObservation& rover_obs,
-                                        const EpochObservation& baser_obs) {
-  bool valid_base_coor = baser_obs.has_position_x() &&
-                         baser_obs.has_position_y() &&
-                         baser_obs.has_position_z();
-  strict_synch_ = false;
-  if (!valid_base_coor) {
-    return 0;
-  }
-  // for dual-antenna, the master antenna is moving, update baser coor
-  SetBaserCoordinate(baser_obs.position_x(), baser_obs.position_y(),
-                       baser_obs.position_z());
-  double sec_per_week = apollo::localization::local_gnss::SECOND_PER_WEEK;
-  double t_rover =
-      rover_obs.gnss_week() * sec_per_week + rover_obs.gnss_second_s();
-  double t_baser =
-      baser_obs.gnss_week() * sec_per_week + baser_obs.gnss_second_s();
-  if (fabs(t_rover - t_baser) < GetSynchTimeGapThreshold()) {
-    strict_synch_ = true;
   }
   return 1;
 }
@@ -245,7 +222,6 @@ int GnssPntSolver::SolveWithBaser(
   if (!IsSafeStandardPointPos(std_rover, pdop)) {
     ResetFixedRtk();
     rover_preprocessor_.ReInitialize();
-    // return -1;
     return RET_BAD_SPP;
   }
 
@@ -282,7 +258,6 @@ int GnssPntSolver::SolveWithBaser(
   }
 
   if (position_option_ <= apollo::localization::local_gnss::STANDARD) {
-    // return 0;
     return RET_SPP_MODE;
   }
 
@@ -290,10 +265,8 @@ int GnssPntSolver::SolveWithBaser(
   DeleteElvCutoffSat(elevation_cutoff_deg_, &rover_sat_vector_used);
 
   PointThreeDim std_slip_rover(-999.9, -999.9, -999.9);
-  // phase time difference result
 
   bool valid_delta_pos = false;
-
   PointThreeDim ptd_result = spp_result;
   valid_time_diff_ = rover_preprocessor_.DetectBasedOnGeometry(
       rover_related_gnss_type, ptd_result, rover_obs, rover_sat_vector_used);
@@ -333,20 +306,18 @@ int GnssPntSolver::SolveWithBaser(
   test_ins_aid_ = false;
 
   if (position_option_ <= apollo::localization::local_gnss::TIME_DIFF_PHASE) {
-    // return 0;
     return RET_TIME_DIFF_PHASE_MODE;
   }
 
   if (!valid_base) {
-    // return 0;
     return RET_NO_VALID_BASER;
   }
+
   // for real time, consider baser coordinate update
   double dis_gap = 0.0;
   // when basercoor not set
   if (fabs(baser_coor_.x) < 10000.0 && fabs(baser_coor_.y) < 10000.0 &&
       fabs(baser_coor_.z) < 10000.0) {
-    // return 0;
     EncodeDetails("base coordinate = %12.3f %12.3f %12.3f", baser_coor_.x,
                    baser_coor_.y, baser_coor_.z);
     return RET_INVALID_BASE_COORDINATE;
@@ -363,7 +334,6 @@ int GnssPntSolver::SolveWithBaser(
     ResetFixedRtk();
     EncodeDetails("base spp std = %6.4f and its gap with fixed coor = %12.3f",
                    std_baser, dis_gap);
-    // return 0;
     return RET_INVALID_BASE_SPP;
   }
 
@@ -403,7 +373,6 @@ int GnssPntSolver::SolveWithBaser(
     ResetFixedRtk();
     rover_preprocessor_.ReInitialize();
     EncodeDetails("common satellites number = %4d", common_in_baser.size());
-    // return 1;
     return RET_NOT_ENOUGH_COMMON_SAT;
   }
   // code difference
@@ -436,7 +405,6 @@ int GnssPntSolver::SolveWithBaser(
   BoundRangePrecision(std_dif);
 
   if (position_option_ <= apollo::localization::local_gnss::CODE_DIFF) {
-    // return 1;
     return RET_CODE_DIFF_MODE;
   }
   // diff_age exceeds 15 seconds (currently happpen under ntrip caster)
@@ -461,7 +429,6 @@ int GnssPntSolver::SolveWithBaser(
                            common_in_baser, related_gnss_type, baser_coor_,
                            &rtk_result)) {
     ResetFixedRtk();
-    // return 1;
     return RET_INVALID_RTK;
   }
 
@@ -490,10 +457,9 @@ int GnssPntSolver::SolveWithBaser(
   }
 
   if (position_option_ <= apollo::localization::local_gnss::RTK) {
-    // return 2;
     return RET_VALID_RTK;
   }
-  // return -1;
+
   return RET_BAD_SPP;
 }
 
@@ -564,9 +530,7 @@ double GnssPntSolver::GetStandardPosition(
               &sat_pvt.clock_drift, &sat_pvt.toe) == false) {
         continue;
       }
-      /*if (ExcludeSemiCycleSat(obs.sat_obs(i))) {
-          //continue;
-      }*/
+
       unsigned int j = 0;
       for (j = 0; j < related_gnss_type->size(); j++) {
         if (obs.sat_obs(i).sat_sys() == (*related_gnss_type)[j]) {
@@ -594,11 +558,10 @@ double GnssPntSolver::GetStandardPosition(
       clk(num_valid_sat, 0) =
           sat_pvt.clock_bias * apollo::localization::local_gnss::C_MPS;
       prior_res(num_valid_sat, 0) += clk(num_valid_sat, 0);
-#if 1
+
       double rover_trop_delay = trop_rover.TropoDelay(
           sat_pvt.elevation * deg2rad, sat_pvt.azimuth * deg2rad);
       prior_res(num_valid_sat, 0) -= rover_trop_delay;
-#endif
       ++num_valid_sat;
       ++num_valid_obs;
       sate_vector_used->push_back(sat_pvt);
@@ -625,12 +588,7 @@ double GnssPntSolver::GetStandardPosition(
       }
       vv(i, 0) = prior_res(i, 0);
     }
-    PrintMatrix(prior_res, "prior_res");
-    PrintMatrix(aa, "A");
-    PrintMatrix(vv, "V");
-    PrintMatrix(pp, "P");
-    // To do: the equation solving should cover situation without enough
-    // satellites
+    // To do: equation solving shall cover situation without enough satellites
     Eigen::MatrixXd at = aa.transpose();
     Eigen::MatrixXd ata = at * pp * aa;
     Eigen::MatrixXd atv = at * pp * vv;
@@ -803,10 +761,6 @@ double GnssPntSolver::GetStandardVelocity(
     std_doppler_diff_.x = test_v(0, 0);
     std_doppler_diff_.y = test_v(1, 1);
     std_doppler_diff_.z = test_v(2, 2);
-    PrintMatrix(a, "a");
-    PrintMatrix(v, "v");
-    PrintMatrix(dx, "dx");
-    PrintMatrix(res, "res");
     if (fabs(dx(0, 0)) < ellipson && fabs(dx(1, 0)) < ellipson &&
         fabs(dx(2, 0)) < ellipson) {
       break;
@@ -1173,11 +1127,11 @@ bool GnssPntSolver::ConstructSDEquation(
           vp(common_range_num, 0) +=
               apollo::localization::local_gnss::C_MPS *
               (common_in_rover[i].clock_bias - common_in_baser[i].clock_bias);
-          // To do: detect wrong range obs with receiver clock error already
-          // corrected
+          // To DO: rm wrong range obs with clock bias already corrected
           /*if (fabs(vp(common_range_num, 0)) > 1000000) {
               continue;
           }*/
+
           // clock
           ap(common_range_num, 3 + num_zwd + num_ifb + sat_index_in_sys) = 1;
           if (ztd_option_ >= ZTD_ESTIMATE) {
@@ -1318,12 +1272,6 @@ bool GnssPntSolver::ConstructSDEquation(
     }
   }
 
-  /*
-  1) for a short baseline for heading, length of baseline was constrained,
-  2) for an ins-aided rover, the position vector was directly observed, then
-  forming  x-x_, y-y_, z-z_ with related weights,
-  */
-
   if (GetEnableExternalPrediction() && test_ins_aid_) {
     const double unit_weight = 1.0 * 1.0;
     // a prior coordinate with 50 cm accuracy
@@ -1342,7 +1290,7 @@ bool GnssPntSolver::ConstructSDEquation(
   }
 
   amb_tracker_.DeleteDescendingAmb();
-  // calls for enough valided phase number and excluding one whole system's
+  // calls for enough valid phase number without excluding one whole system's
   // satellites
   if (!IsEnoughPhaseObs(phase_recorder.size(), related_gnss_type.size(),
                          common_related_gnss_type.size())) {
@@ -1386,7 +1334,7 @@ bool GnssPntSolver::ConstructSDEquation(
   // phase = 15 mm
   const double phase_p = 0.015;
   const double precision_dd_phase = phase_p * 2.0;
-#if 1
+
   am_phase = am_phase.topRows(valid_phase_num);
   Eigen::MatrixXd dop_phase = am_phase.transpose() * am_phase;
   dop_phase = dop_phase.inverse();
@@ -1396,7 +1344,6 @@ bool GnssPntSolver::ConstructSDEquation(
       rtk_dop_phase_ * precision_dd_phase * precision_dd_phase;
   PointThreeDim dop_xyz = rtk_dop_phase_;
   gnss_utility::dxyz2enu(rover_coor_, dop_xyz, &rtk_dop_phase_);
-#endif
 
   std_rtk_ = rtk_dop * precision_dd_phase * precision_dd_phase;
   Eigen::MatrixXd post_res = lm - am * dx;
@@ -1653,11 +1600,6 @@ bool GnssPntSolver::ConstructSDEquation(
   PrintMatrix(newdx, "newdx");
   auxiliary_infor_ = dx + newdx;
 
-#if 0
-    printf("%3d%12.3f%12.3f%12.3f%12.3f%12.8f%12.3f\n",
-        obs_rover.receiver_id(), obs_rover.gnss_second_s(), vtpv(0, 0),
-        ratio, ratio_thres, real_time_ub_fail_rate_, std_phase);
-#endif
   if (!b_rtkfixed_) {
     if (FixJudgeCombined(ratio, ratio_thres, vtpv(0, 0), std_phase,
                       real_time_ub_fail_rate_)) {
@@ -1766,6 +1708,24 @@ double GnssPntSolver::ResolveAmbiguity(const Eigen::MatrixXd& float_dd,
 
   return mlambda_solver_.GetRatio();
 }
+
+// interface for other sensors' aiding, not supported yet
+bool GnssPntSolver::MotionUpdate(double time_sec, const PointThreeDim position,
+                                  const double std_pos[3][3],
+                                  const PointThreeDim velocity,
+                                  const double std_vel[3][3]) {
+  _predict_time_sec = time_sec;
+  _predict_position = position;
+  _predict_velocity = velocity;
+  for (unsigned int i = 0; i < 3; ++i) {
+    for (unsigned int j = 0; j < 3; ++j) {
+      _predict_std_pos[i][j] = std_pos[i][j];
+      _predict_std_vel[i][j] = std_vel[i][j];
+    }
+  }
+  return true;
+}
+
 }  // namespace local_gnss
 }  // namespace localization
 }  // namespace apollo

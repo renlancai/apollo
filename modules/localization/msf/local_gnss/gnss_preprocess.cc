@@ -29,9 +29,7 @@ PreProcessor::~PreProcessor() { global_ephemeris_ptr_ = NULL; }
 void PreProcessor::Initialize() {
   debug_print_ = false;
   user_id_ = 0;
-  // 2mm
-  const double unit_weight = 0.002 * 0.002;
-  phase_precision_ = sqrt(2.0) * unit_weight;
+  phase_precision_ = sqrt(2.0) * 0.01 * 0.01;
   global_ephemeris_ptr_ = NULL;
   band_to_solve_.resize(0);
   gnss_to_solve_.resize(0);
@@ -70,7 +68,6 @@ bool PreProcessor::CheckSlipValue(const GnssBandID& band_id,
 
 void PreProcessor::SetGlobalEphemerisPtr(SatelliteInterface* ptr_eph) {
   global_ephemeris_ptr_ = reinterpret_cast<SatelliteInterface*>(ptr_eph);
-  // global_ephemeris_ptr_ = (SatelliteInterface*)ptr_eph;
 }
 
 unsigned int PreProcessor::GetSlipSize() { return slip_recorder_.size(); }
@@ -117,7 +114,6 @@ bool PreProcessor::CalculateAverageVel(
   PointThreeDim denu;
   dxyz = dxyz + *pos_corr - last_pos_;
   delta_pos_ = dxyz;
-  // pos += *pos_corr;
   gnss_utility::dxyz2enu(pos, dxyz, &denu);
   double t_gap =
       SECOND_PER_WEEK * (newobs.gnss_week() - last_obs_.gnss_week()) +
@@ -168,64 +164,6 @@ bool PreProcessor::SetResolvedBands(
   }
   return gnss_to_solve_.size() > 0;
 }
-
-#if 0
-bool PreProcessor::fix_observation(
-        const SlipKey& band_obs_id,
-        const double slip,
-        EpochObservation& newobs) {
-    const apollo::drivers::gnss::GnssBandID band_id = band_obs_id.band_id;
-    GnssType temp = apollo::drivers::gnss::GPS_SYS;
-    if (band_id == apollo::drivers::gnss::GPS_L1 ||
-        band_id == apollo::drivers::gnss::GPS_L2 ||
-        band_id == apollo::drivers::gnss::GPS_L5) {
-        temp = apollo::drivers::gnss::GPS_SYS;
-    } else if (band_id == apollo::drivers::gnss::BDS_B1 ||
-        band_id == apollo::drivers::gnss::BDS_B2 ||
-        band_id == apollo::drivers::gnss::BDS_B3) {
-        temp = apollo::drivers::gnss::BDS_SYS;
-    } else if (band_id == apollo::drivers::gnss::GLO_G1 ||
-        band_id == apollo::drivers::gnss::GLO_G2) {
-        temp = apollo::drivers::gnss::GLO_SYS;
-    }
-
-    unsigned int obs_num = newobs.sat_obs_num();
-    for (unsigned int i = 0; i < obs_num; ++i) {
-        SatelliteObservation sat_i = newobs.sat_obs(i);
-        if (sat_i.sat_sys() != temp || sat_i.sat_prn() != band_obs_id.sat_prn) {
-            continue;
-        }
-        for (unsigned int j = 0; j < sat_i.band_obs_num(); ++j) {
-            if (sat_i.band_obs(j).band_id() == band_id) {
-                double phase = sat_i.band_obs(j).carrier_phase();
-                phase -= slip;
-                sat_i.mutable_band_obs(j)->set_carrier_phase(phase);
-                *(newobs.mutable_sat_obs(i)) = sat_i;
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool PreProcessor::update_last_epoch_satellite(
-        unsigned int gnss_week_num,
-        double gnss_second_s) {
-    if (global_ephemeris_ptr_ != NULL) {
-        return false;
-    }
-    unsigned int last_second_s = (unsigned int)last_obs_.gnss_second_s();
-    const unsigned int glonass_epoch = 1800;
-    const unsigned int bds_epoch = 3600;
-    const unsigned int gps_epoch = 7200;
-    if ((last_second_s - 15 * 60 - 15) % glonass_epoch == 0 ||
-        (last_second_s - 14) % bds_epoch == 0 ||
-        last_second_s % gps_epoch == 0) {
-        return true;
-    }
-    return false;
-}
-#endif
 
 bool PreProcessor::UpdateSatInforWithNewEph(SatelliteInfor* last_sat) {
   if (global_ephemeris_ptr_ == NULL) {
@@ -356,8 +294,6 @@ bool PreProcessor::DetectBasedOnGeometry(
       // get common sat
       SatelliteObservation last_sat_j;
       SatelliteObservation current_sat_j;
-      assert(last_sat_list_[i].index_in_obs >= 0 &&
-             sat_list[j].index_in_obs >= 0);
       last_sat_j = last_obs_.sat_obs(last_sat_list_[i].index_in_obs);
       current_sat_j = newobs.sat_obs(sat_list[j].index_in_obs);
 
@@ -415,7 +351,7 @@ bool PreProcessor::DetectBasedOnGeometry(
     precise_set_coor_ = false;
     return false;
   }
-  // To do: add dx,dy,dz constrains to only esitmate relative clock drift
+
   num_states = 3 + common_related_gnss_type.size();
   Eigen::MatrixXd dx(num_states, 1);
   dx.setZero();
@@ -501,8 +437,7 @@ bool PreProcessor::DetectBasedOnGeometry(
     atpl = an.transpose() * px * ln;
     dx = inv_atpa * atpl;
     resi = ln - an * dx;
-    PrintMatrix(dx, "dx");
-    PrintMatrix(resi, "resi");
+
     sum = resi.transpose() * resi;
     Eigen::MatrixXd test = resi.transpose() * px * resi;
     double sum_test = test(0, 0);
@@ -518,9 +453,9 @@ bool PreProcessor::DetectBasedOnGeometry(
   if (std_v < std_threshold) {
     last_pos_std_ += slip_dop * precision_sd_phase * precision_sd_phase;
   } else {
-    last_pos_std_.x = 0.1 * 0.1;
+    last_pos_std_.x = 0.2 * 0.2;
     last_pos_std_.y = 0.2 * 0.2;
-    last_pos_std_.z = 0.1 * 0.1;
+    last_pos_std_.z = 0.2 * 0.2;
   }
 
   // roughly evaluate
@@ -530,7 +465,7 @@ bool PreProcessor::DetectBasedOnGeometry(
       double val = resi(i, 0) / len_recorder[i];
       if (fabs(val) > 0.1) {
         SlipKey temp = obs_recorder[i];
-        // specific actions should be executed in in main gnss rtk solution.
+        // specific actions should be executed in main gnss rtk solution.
         slip_recorder_.insert(std::map<SlipKey, double>::value_type(temp, val));
         ++num_slips;
       }

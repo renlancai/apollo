@@ -59,13 +59,13 @@ double GnssPntSolver::GetBandLength(
 }
 
 void GnssPntSolver::LogFixedAmbToBuffer(const char *amb_log) {
-  // TO DO:
+  // TO DO: add interface to write fixed amb into file for debugging
 }
 
 bool GnssPntSolver::CaculateHeading(const PointThreeDim &ant_base,
                                    const PointThreeDim &ant_slave,
                                    const PointThreeDim &phase_std) {
-  // TO DO:
+  // Would be overrided by Class GnssDualAntSolver
   return true;
 }
 

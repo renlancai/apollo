@@ -86,6 +86,7 @@ bool RinexNav::ReadEphEpoch(
   if (rinex_ver_ == apollo::localization::local_gnss::VERSION_3) {
     b_flag = ReadRinexVer3(gnss_orbit);
   } else if (rinex_ver_ == apollo::localization::local_gnss::VERSION_2) {
+    // not supported yet
     // b_flag = read_v2(gnss_orbit);
   }
   switch (gnss_orbit->gnss_type()) {
@@ -101,6 +102,7 @@ bool RinexNav::ReadEphEpoch(
       gnss_orbit->mutable_glonass_orbit()->set_gnss_time_type(
           apollo::drivers::gnss::GLO_TIME);
       break;
+    // TO DO: more gnss systems could be deployed further.
     default:
       break;
   }
@@ -157,7 +159,7 @@ bool RinexNav::WriteEph(bool header_write, FILE* fp_eph,
     temp_kep = raw_eph.keppler_orbit();
     int week_num = temp_kep.week_num();
     if (temp_kep.gnss_type() == apollo::drivers::gnss::BDS_SYS) {
-      /* BDS week_num has a const offset (1356 = 1953 - 597) from GPS's*/
+      // BDS week_num has a const offset (1356 = 1953 - 597) from GPS's
       week_num += 1356;
     }
     gnss_utility::GpsTime2DayTime(week_num, temp_kep.toc(), &year, &month, &day,
@@ -231,17 +233,6 @@ bool RinexNav::WriteEph(bool header_write, FILE* fp_eph,
   return true;
 }
 
-/*
-bool RinexNav::open_file(const char* nav_file) {
-  if (nav_file != NULL) {
-    fp_nav_.open(nav_file, std::ios::in);
-    return  fp_nav_.is_open();
-  } else {
-    return false;
-  }
-}
-*/
-
 bool RinexNav::ReadRinexVer3(GnssEphemeris* gnss_orbit) {
   bit_bias_ = 1;
   // gnss_orbit->gnss_type = gnss_type_;
@@ -251,8 +242,9 @@ bool RinexNav::ReadRinexVer3(GnssEphemeris* gnss_orbit) {
 
 /*
 bool RinexNav::read_v2(apollo::localization::local_gnss::GnssEphemeris*
-gnss_orbit) { bit_bias_ = 0; gnss_orbit->setgnss_type_(gnss_type_); return
-ReadEphContext(gnss_orbit);
+      gnss_orbit) {
+  bit_bias_ = 0; gnss_orbit->setgnss_type_(gnss_type_);
+  return ReadEphContext(gnss_orbit);
 }
 */
 

@@ -275,11 +275,6 @@ Eigen::MatrixXd AmbiguityTracker::GetMatrixSD2DD(Eigen::MatrixXd* ref_amb) {
     }
     if (ref_ind >= 0) {
       matrix_sd_2_dd(dd_obs_num, ref_ind) = -1;
-#ifndef _NO_SEMI_CYCLE_PHASE_
-      if (IsHalpCycle(unresolved_phase_[ref_ind])) {
-        matrix_sd_2_dd(dd_obs_num, ref_ind) = -2;
-      }
-#endif
     } else {
       // ref_ind == -2,indicating reference obs' amb fixed
       double val = 0.0;
@@ -287,11 +282,6 @@ Eigen::MatrixXd AmbiguityTracker::GetMatrixSD2DD(Eigen::MatrixXd* ref_amb) {
       ref_sd_amb(dd_obs_num, 0) = val;
     }
     matrix_sd_2_dd(dd_obs_num, i) = 1;
-#ifndef _NO_SEMI_CYCLE_PHASE_
-    if (IsHalpCycle(unresolved_phase_[i])) {
-      matrix_sd_2_dd(dd_obs_num, i) = 2;
-    }
-#endif
     ++dd_obs_num;
   }
   *ref_amb = ref_sd_amb.topLeftCorner(dd_obs_num, 1);
@@ -307,7 +297,6 @@ bool AmbiguityTracker::UpdateSDAmb(const Eigen::MatrixXd &float_sd,
     if (ref_ind >= 0) {
       (*integer_sd)(i, 0) += (float_sd(ref_ind, 0));
     } else if (ref_ind == -1) {
-      // current unresolved phase is reference obs, round it
       (*integer_sd)(i, 0) = (float_sd(i, 0));
     } else if (ref_ind == -2) {
       // related reference phase ambiguity is fixed,no update to integer_sd
@@ -329,30 +318,6 @@ bool AmbiguityTracker::AddFixedAmb(const Eigen::MatrixXd &integer_sd) {
   return true;
 }
 
-/*
-void AmbiguityTracker::write_fixed_amb(
-    double obstime, double ratio, char* amb_log) {
-    if (amb_log == NULL) {
-        return;
-    }
-    FILE* fp_amb = fopen(amb_log, "a+");
-    if (fp_amb != NULL) {
-      fprintf(fp_amb, "%12.3f%8.3f%4d\n", obstime, ratio,
-(int)amb_fixed_.size()); std::map<AmbKey, double>::iterator iter =
-amb_fixed_.begin(); for (;iter != amb_fixed_.end();) { double ref_val = 0.0;
-        GetReferenceAmb(iter->first, ref_val);
-        fprintf(fp_amb, "%2d%3d%12.2f\n",
-        iter->first.band_id,
-        iter->first.sat_prn,
-        iter->second - ref_val);
-        ++iter;
-      }
-      //print unfixed
-      fclose(fp_amb);
-    }
-}
-*/
-
 bool AmbiguityTracker::DeleteDescendingAmb() {
   std::vector<apollo::drivers::gnss::GnssBandID> del_ref_band;
   del_ref_band.resize(0);
@@ -362,7 +327,7 @@ bool AmbiguityTracker::DeleteDescendingAmb() {
     AmbKey temp = iter_amb->first;
     std::map<AmbKey, double>::iterator iter_elv = obs_elevation_deg_.find(temp);
     if (iter_elv == obs_elevation_deg_.end()) {
-      // take care the erased satellite being a reference satellite
+      // take care of the erased satellite being a reference satellite
       for (unsigned int ind = 0; ind < reference_sat_.size(); ++ind) {
         if (temp == reference_sat_[ind]) {
           reference_sat_.erase(reference_sat_.begin() + ind);
@@ -411,7 +376,7 @@ bool AmbiguityTracker::DeleteSlipAmb(
   bool b_delete_ref = false;
   // erase fixed amb for slips
   DeleteLog(sat_band_id, sat_prn, &amb_fixed_);
-  // take care the sliped satellite being a reference satellite
+  // take care of the sliped satellite being a reference satellite
   for (unsigned int ind = 0; ind < reference_sat_.size(); ++ind) {
     if (slip_obs == reference_sat_[ind]) {
       reference_sat_.erase(reference_sat_.begin() + ind);
@@ -422,31 +387,7 @@ bool AmbiguityTracker::DeleteSlipAmb(
   if (!b_delete_ref) {
     return true;
   }
-  // not all satellilte elevation has been updated so far
-  /*
-    //find a fixed satellite as new reference for the band
-    double max_elv_deg = -0.01;
-    double elv_deg = 0.0;
-    //check out a fixed band satellite as reference
-    bool b_new_ref = false;
-    AmbKey obs_reference(sat_band_id, sat_prn);
-    std::map<AmbKey, double>::iterator iter = amb_fixed_.begin();
-    for (; iter != amb_fixed_.end(); ++iter) {
-        AmbKey temp = iter->first;
-        if (slip_obs.band_id != temp.band_id) {
-            continue;
-        }
-        elv_deg = GetElevation(temp);
-        if (elv_deg > max_elv_deg) {
-            max_elv_deg = elv_deg;
-            obs_reference = temp;
-            b_new_ref = true;
-        }
-    }
-    if (b_new_ref == true) {
-        reference_sat_.push_back(obs_reference);
-    }
-    */
+
   return true;
 }
 

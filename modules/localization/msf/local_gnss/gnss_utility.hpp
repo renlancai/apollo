@@ -315,7 +315,7 @@ inline void PrintEigenMatrix(const Eigen::MatrixXd& t, const char* t_name,
   if (t_name == NULL) {
     return;
   }
-  printf("clon matrix %s row=%d col=%d\n", t_name, static_cast<int>(t.rows()),
+  printf("debug matrix %s row=%d col=%d\n", t_name, static_cast<int>(t.rows()),
          static_cast<int>(t.cols()));
   for (unsigned int r = 0; r < t.rows(); ++r) {
     for (unsigned int c = 0; c < t.cols(); ++c) {

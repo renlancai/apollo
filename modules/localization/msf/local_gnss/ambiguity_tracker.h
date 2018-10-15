@@ -102,7 +102,6 @@ class AmbiguityTracker {
   void AddHalfCycleRecorder(const AmbKey &half_cycle_phase);
   bool IsHalpCycle(const AmbKey &half_cycle_phase);
 
-  //  void write_fixed_amb(double obstime, double ratio, char* amb_log);
  private:
   bool GetLog(const apollo::drivers::gnss::GnssBandID &sat_band_id,
                const unsigned int sat_prn, const AmbLogger &logger,

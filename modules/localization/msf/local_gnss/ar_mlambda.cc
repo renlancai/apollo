@@ -19,7 +19,7 @@
 namespace apollo {
 namespace localization {
 namespace local_gnss {
-/* ratio threshold look up table for fixed failure rate, refer to:
+/* a temporal ratio threshold look up table for fixed failure rate, refer to:
    Sandra Verhagen ,The ratio test for future GNSS ambiguity resolution, 2009.
 */
 const unsigned int max_number_index = 30;
@@ -30,8 +30,6 @@ const double ILS_failure_index[max_number_index] = {
     0.0650, 0.0700, 0.0750, 0.0800, 0.0850, 0.0900, 0.0950, 0.1000,
     0.1200, 0.1500, 0.2000, 0.2500, 0.2600, 1.0000};
 const double ratio_look_up_table[max_number_index][max_number_dd_amb] = {
-    // 1    2    3    4    5    6    7    8    9    10   11   12   13   14   15
-    // 16
     {1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00,
      1.00, 1.00, 1.00, 1.00},  // 0.0010
     {0.94, 0.94, 0.94, 0.94, 0.94, 0.94, 0.94, 0.94, 0.94, 0.96, 0.96, 0.96,
@@ -93,17 +91,17 @@ const double ratio_look_up_table[max_number_index][max_number_dd_amb] = {
     {0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
      0.01, 0.05, 0.05, 0.05}};  // 1.0000
 
-double ARLambda::GetRatioThreshold(const unsigned int num_dd,
+double ARMLambda::GetRatioThreshold(const unsigned int num_dd,
                                      const double p_f_ILS) {
+  // a more conservative control
   if (p_f_ILS >= 0.15) {
     return 30.0;
   } else if (p_f_ILS > 0.10) {
     return 20.0;
   } else if (p_f_ILS > 0.05) {
     return 10.0;
-  } else if (p_f_ILS > 0.02) {
-    return 5.0;
   }
+
   unsigned int i = 0;
   for (i = max_number_index - 1; i > 0; --i) {
     if (p_f_ILS <= ILS_failure_index[i] && p_f_ILS > ILS_failure_index[i - 1]) {
@@ -124,37 +122,37 @@ double ARLambda::GetRatioThreshold(const unsigned int num_dd,
   }
   return ratio_thres;
 }
-bool ARLambda::IsFixedSuccessfully(const double threshhold) {
+bool ARMLambda::IsFixedSuccessfully(const double threshhold) {
   return (squared_ratio_ > threshhold) ? true : false;
 }
 
-double ARLambda::GetRatio() { return squared_ratio_; }
+double ARMLambda::GetRatio() { return squared_ratio_; }
 
-double ARLambda::GetUpperBoundFailureRate() {
+double ARMLambda::GetUpperBoundFailureRate() {
   return upper_bound_failure_rate_ar_;
 }
 
-Eigen::MatrixXd ARLambda::GetArZ() {
+Eigen::MatrixXd ARMLambda::GetArZ() {
   return z_;
 }
 
-Eigen::MatrixXd ARLambda::GetArQzz() {
+Eigen::MatrixXd ARMLambda::GetArQzz() {
   return qzz_;
 }
 
-double ARLambda::Sign(double x) { return (x <= 0.0) ? -1.0 : 1.0; }
+double ARMLambda::Sign(double x) { return (x <= 0.0) ? -1.0 : 1.0; }
 
-double ARLambda::Round(double x) {
+double ARMLambda::Round(double x) {
   return static_cast<int>(std::floor(x + 0.5));
 }
 
-void ARLambda::SwapData(double* a, double* b) {
+void ARMLambda::SwapData(double* a, double* b) {
   double t(*a);
   *a = *b;
   *b = t;
 }
 
-double ARLambda::GetGaussCdf(const double d) {
+double ARMLambda::GetGaussCdf(const double d) {
   const double a1 = 0.31938153;
   const double a2 = -0.356563782;
   const double a3 = 1.781477937;
@@ -170,7 +168,7 @@ double ARLambda::GetGaussCdf(const double d) {
   return cnd;
 }
 
-int ARLambda::Factorize(const Eigen::MatrixXd &qxx,
+int ARMLambda::Factorize(const Eigen::MatrixXd &qxx,
                         Eigen::MatrixXd* low,
                         std::vector<double>* diag) {
   const int n = static_cast<int>(qxx.rows());
@@ -196,10 +194,11 @@ int ARLambda::Factorize(const Eigen::MatrixXd &qxx,
       (*low)(i, j) /= (*low)(i, i);
     }
   }
+
   return 0;
 }
 
-void ARLambda::Gauss(int i, int j, Eigen::MatrixXd* low,
+void ARMLambda::Gauss(int i, int j, Eigen::MatrixXd* low,
                      Eigen::MatrixXd* z_int) {
   const int n = (*low).rows();
   const int mu = static_cast<int>(Round((*low)(i, j)));
@@ -213,7 +212,7 @@ void ARLambda::Gauss(int i, int j, Eigen::MatrixXd* low,
   }
 }
 
-void ARLambda::Permute(Eigen::MatrixXd* low, std::vector<double>* diag,
+void ARMLambda::Permute(Eigen::MatrixXd* low, std::vector<double>* diag,
               int j, double del,
               Eigen::MatrixXd* z_int) {
   const int n = low->rows();
@@ -236,7 +235,7 @@ void ARLambda::Permute(Eigen::MatrixXd* low, std::vector<double>* diag,
   }
 }
 
-void ARLambda::Reduct(Eigen::MatrixXd* low, std::vector<double>* diag,
+void ARMLambda::Reduct(Eigen::MatrixXd* low, std::vector<double>* diag,
                  Eigen::MatrixXd* z_int) {
   const int n = low->rows();
   int j(n - 2);
@@ -259,28 +258,11 @@ void ARLambda::Reduct(Eigen::MatrixXd* low, std::vector<double>* diag,
   }
 }
 
-int ARLambda::SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
-                     const Eigen::MatrixXd &zs,
-                     Eigen::MatrixXd* z_int,
-                     std::vector<double>* square_res,
-                     const int &m) {
-  // not supported yet.
-  return -1;
-}
-
 int ARMLambda::SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
                       const Eigen::MatrixXd &zs,
                       Eigen::MatrixXd* z_int,
                       std::vector<double>* square_res,
                       const int &m) {
-  // TODO(apollo): CHECK UNEXPECTED INPUT
-  // n - number of float parameters
-  // m - number of fixed solutions
-  // L - nxn
-  // D - nx1
-  // zs - nx1
-  // z_int - nxm
-  // s  - m
   const int LOOPMAX = 10000;
   const int n = L.rows();
 
@@ -305,7 +287,7 @@ int ARMLambda::SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
   int nn = 0;
   int imax = 0;
   double maxdist = 1E99;
-  for (int c = 0; c < LOOPMAX; c++) {
+  for (c = 0; c < LOOPMAX; c++) {
     double newdist = dist[k] + y * y / D[k];
     if (newdist < maxdist) {
       if (k != 0) {
@@ -372,17 +354,18 @@ int ARMLambda::SearchAmb(const Eigen::MatrixXd &L, const std::vector<double> &D,
   return 0;
 }
 
-int ARLambda::Lambda(const Eigen::MatrixXd &A, const Eigen::MatrixXd &Q,
+int ARMLambda::Lambda(const Eigen::MatrixXd& float_amb,
+                     const Eigen::MatrixXd &q_nn,
                      Eigen::MatrixXd* fix_amb,
-                     std::vector<double>* s,
+                     std::vector<double>* square_res,
                      const int &m) {
-  if ((A.rows() != Q.rows()) || (Q.rows() != Q.cols())) {
+  if ((float_amb.rows() != q_nn.rows()) || (q_nn.rows() != q_nn.cols())) {
     return -1;
   }
   if (m < 1) {
     return -1;
   }
-  const unsigned int n = static_cast<unsigned int>(A.rows());
+  const unsigned int n = static_cast<unsigned int>(float_amb.rows());
   Eigen::MatrixXd L(n, n);
   L.setZero(n, n);
   Eigen::MatrixXd E(n, m);
@@ -391,47 +374,49 @@ int ARLambda::Lambda(const Eigen::MatrixXd &A, const Eigen::MatrixXd &Q,
   std::vector<double> dd(n, 0.0);
   Eigen::MatrixXd z = Eigen::MatrixXd::Identity(n, n);
   // add a transformed Qxx to calculate the low-bound for AR success rate
-  qzz_ = Q;
-  s->resize(m, 0.0);
-  if (Factorize(Q, &L, &dd) == 0) {
-    Reduct(&L, &dd, &z);
-    Eigen::MatrixXd zta = z.transpose() * A;
-    z_ = z;
-    qzz_ = z.transpose() * qzz_ * z;
-    if (SearchAmb(L, dd, zta, &E, s, m) == 0) {
-      try {  // Fix = Z'\E - Z nxn  E nxm Fix nxm
-        Eigen::MatrixXd zi = z.inverse();
-        *fix_amb = zi.transpose() * E;
-      } catch (...) {
-        return -1;
-      }
-    }
-    // get eigen value of transformed Qxx
-    Eigen::EigenSolver<Eigen::MatrixXd> es(qzz_);
-    std::complex<double> lam = es.eigenvalues()[0];
-    double eigenvalue_max = lam.real();
-    double eigenvalue_min = lam.real();
-    for (unsigned int i = 1; i < n; ++i) {
-      lam = es.eigenvalues()[i];
-      if (eigenvalue_max < lam.real()) {
-        eigenvalue_max = lam.real();
-      }
-      if (eigenvalue_min > lam.real()) {
-        eigenvalue_min = lam.real();
-      }
-    }
-
-    double lower_bound_success_rate_ar = 1.0;
-    for (unsigned int i = 0; i < n; ++i) {
-      lower_bound_success_rate_ar *= 2 * GetGaussCdf(0.5 / sqrt(dd[i])) - 1;
-    }
-    upper_bound_failure_rate_ar_ = 1 - lower_bound_success_rate_ar;
-    return 0;
+  qzz_ = q_nn;
+  square_res->resize(m, 0.0);
+  if (Factorize(q_nn, &L, &dd) != 0) {
+    return -1;
   }
-  return -1;
+  Reduct(&L, &dd, &z);
+  Eigen::MatrixXd zta = z.transpose() * float_amb;
+  z_ = z;
+  qzz_ = z.transpose() * qzz_ * z;
+  if (SearchAmb(L, dd, zta, &E, square_res, m) != 0) {
+    return -1;
+  }
+  // Fix = Z'\E - Z nxn  E nxm Fix nxm
+  try {
+    Eigen::MatrixXd zi = z.inverse();
+    *fix_amb = zi.transpose() * E;
+  } catch (...) {
+    return -1;
+  }
+  // get eigen value of transformed Qxx
+  Eigen::EigenSolver<Eigen::MatrixXd> es(qzz_);
+  std::complex<double> lam = es.eigenvalues()[0];
+  double eigenvalue_max = lam.real();
+  double eigenvalue_min = lam.real();
+  for (unsigned int i = 1; i < n; ++i) {
+    lam = es.eigenvalues()[i];
+    if (eigenvalue_max < lam.real()) {
+      eigenvalue_max = lam.real();
+    }
+    if (eigenvalue_min > lam.real()) {
+      eigenvalue_min = lam.real();
+    }
+  }
+
+  double lower_bound_success_rate_ar = 1.0;
+  for (unsigned int i = 0; i < n; ++i) {
+    lower_bound_success_rate_ar *= 2 * GetGaussCdf(0.5 / sqrt(dd[i])) - 1;
+  }
+  upper_bound_failure_rate_ar_ = 1 - lower_bound_success_rate_ar;
+  return 0;
 }
 
-bool ARLambda::ResolveIntegerAmbiguity(const Eigen::MatrixXd &amb_float,
+bool ARMLambda::ResolveIntegerAmbiguity(const Eigen::MatrixXd &amb_float,
                                          const Eigen::MatrixXd &amb_cov,
                                          Eigen::MatrixXd* amb_fix) {
   // check input
@@ -441,6 +426,9 @@ bool ARLambda::ResolveIntegerAmbiguity(const Eigen::MatrixXd &amb_float,
   }
   std::vector<double> ss;
   if (Lambda(amb_float, amb_cov, amb_fix, &ss, 2) == 0) {
+    if (ss.size() <= 0) {
+      return false;
+    }
     squared_ratio_ = (ss[0] < 1e-12) ? 9999.9 : ss[1] / ss[0];
     return true;
   }

@@ -245,6 +245,7 @@ bool SatelliteInterface::GetPosVelClock(
                                       time_signal_duration, position, velocity,
                                       clk_bias, clk_drift, eph_toe);
       break;
+    // TO DO: gnss systems supported should be deployed here
     default:
       break;
   }

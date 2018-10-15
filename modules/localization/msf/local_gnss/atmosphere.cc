@@ -41,12 +41,12 @@ void Atmosphere::ZtdModel(double* ztd_dry, double* ztd_wet) {
   }
   const double zazel[] = {0.0, PI / 2.0};
   // temperature at sea level
-  const double temp0 = 15.0;
+  const double temp_sl = 15.0;
   double humi = 0.5;
   // standard atmosphere
   double hgt = pos_blh_[2] < 0.0 ? 0.0 : pos_blh_[2];
   double pres = 1013.25 * pow(1.0 - 2.2557E-5 * hgt, 5.2568);
-  double temp = temp0 - 6.5E-3 * hgt + 273.16;
+  double temp = temp_sl - 6.5E-3 * hgt + 273.16;
   double e = 6.108 * humi * exp((17.15 * temp - 4684.0) / (temp - 38.45));
   // saastamoninen model
   double z = PI / 2.0 - zazel[1];

@@ -132,7 +132,6 @@ double GnssPntSolver::GetSynchTimeGapThreshold() {
 bool GnssPntSolver::SetRtkResultFile(char* rtk_result_file) {
   if (rtk_result_file != NULL) {
     file_rtk_result_ = rtk_result_file;
-    // printf("%s\n", file_rtk_result_);
     fp_rtk_result_ = fopen(rtk_result_file, "w+");
     return true;
   }
@@ -147,7 +146,6 @@ bool GnssPntSolver::SetAmbiguityFile(char* ambiguity_recorder_file) {
   return false;
 }
 
-// interface for online running
 bool GnssPntSolver::SaveGnssEphemris(
     const GnssEphemeris& gnss_orbit) {
   if (!(gnss_orbit.gnss_type() == apollo::drivers::gnss::GPS_SYS ||
@@ -169,6 +167,7 @@ bool GnssPntSolver::SaveBaserObservation(const EpochObservation& baser_obs) {
   PointThreeDim coor_decoded(baser_obs.position_x(), baser_obs.position_y(),
                              baser_obs.position_z());
   // remove abnormal RTCM decoder with loss of lots satellite observations.
+  // supposing the base satellites number is stable.
   if (baser_obs.sat_obs_num() <= max_sat_num_baser_ / 2) {
     return false;
   }
@@ -213,23 +212,6 @@ double GnssPntSolver::GetRatio() { return ratio_; }
 std::string GnssPntSolver::GetInvalidRtkDetail() {
   std::string temp = invalid_rtk_sub_infor_;
   return temp;
-}
-
-// interface for other sensors' aiding, not supported yet
-bool GnssPntSolver::MotionUpdate(double time_sec, const PointThreeDim position,
-                                  const double std_pos[3][3],
-                                  const PointThreeDim velocity,
-                                  const double std_vel[3][3]) {
-  _predict_time_sec = time_sec;
-  _predict_position = position;
-  _predict_velocity = velocity;
-  for (unsigned int i = 0; i < 3; ++i) {
-    for (unsigned int j = 0; j < 3; ++j) {
-      _predict_std_pos[i][j] = std_pos[i][j];
-      _predict_std_vel[i][j] = std_vel[i][j];
-    }
-  }
-  return true;
 }
 
 }  // namespace local_gnss

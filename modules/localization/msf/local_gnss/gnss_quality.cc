@@ -25,12 +25,11 @@ namespace localization {
 namespace local_gnss {
 
 // this file contains lots of quality control strategies learned from field
-// datas without too much frigid knowledge.
+// datas.
 
-// pnt result quality validation block
 bool GnssPntSolver::IsSafeStandardPointPos(const double std_rover,
                                             const double pdop) {
-  if (fabs(std_rover) >= 10.0 || std_rover < 0.0 || fabs(pdop) > 20.0) {
+  if (fabs(std_rover) >= 10.0 || std_rover < 0.0 || fabs(pdop) > 10.0) {
     return false;
   }
   return true;
@@ -306,7 +305,6 @@ bool GnssPntSolver::IsNeedRecursion(const bool& is_fixed,
   }
   if (IsAbnormalFixedSolutionWithNewPhase(is_fixed, std_fixed,
                                              unknown_phase_num)) {
-    // RET_INVALID_RTK case 3
     EncodeDetails("abnormal_fixed_solution %6.3f", _std_v);
     // shadow the new arising satellites, ignore them for some seconds.
     SeedToughSatGroup(1.0);

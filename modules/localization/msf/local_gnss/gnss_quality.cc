@@ -25,11 +25,14 @@ namespace localization {
 namespace local_gnss {
 
 // this file contains lots of quality control strategies learned from field
-// datas.
+// datas to be conservative for a safety-critical vehicle.
 
 bool GnssPntSolver::IsSafeStandardPointPos(const double std_rover,
                                             const double pdop) {
-  if (fabs(std_rover) >= 10.0 || std_rover < 0.0 || fabs(pdop) > 10.0) {
+  if (fabs(std_rover) >= 10.0 || std_rover < 0.0) {
+    return false;
+  }
+  if (fabs(pdop) > 10.0) {
     return false;
   }
   return true;
@@ -37,12 +40,16 @@ bool GnssPntSolver::IsSafeStandardPointPos(const double std_rover,
 
 bool GnssPntSolver::IsSafeCodeDiffPos(const double dis, const double std_dif,
                                        const bool valid_delta_pos) {
-  if (dis < 10.0 && !valid_delta_pos && fabs(std_dif) < 2.0 &&
-      fabs(std_dif) >= 0.2) {
-    return true;
-  } else {
+  if (fabs(std_dif) > 2.0 || fabs(std_dif) < 0.2) {
     return false;
   }
+  if (dis > 10.0) {
+    return false;
+  }
+  if (valid_delta_pos) {
+    return false;
+  }
+  return true;
 }
 
 bool GnssPntSolver::IsSafeFixedSolution(const unsigned int gnss_type_size,
@@ -80,26 +87,12 @@ bool GnssPntSolver::IsSafeFixedSolution(const unsigned int gnss_type_size,
       new_fixed_phase_num_);
 
   invalid_rtk_sub_infor_ = invalid_rtk_sub_infor_ + rist_temp;
+  if (++_continuous_risky_num >= 5) {
+    _continuous_risky_num = 0;
+    ResetFixedRtk();
+  }
 
   return false;
-}
-
-double GnssPntSolver::GetStdThresForNewSat(const double new_ratio,
-                                                const double std_v) {
-  double thres_hold = 0.05;
-  if (new_ratio < 3) {
-    thres_hold = 0.0001;
-  } else if (new_ratio < 5) {
-    thres_hold = 0.010;
-  } else if (new_ratio < 8) {
-    thres_hold = 0.020;
-  } else if (new_ratio < 15) {
-    thres_hold = 0.025;
-  }
-  if (std_v < 0.03) {
-    thres_hold *= 2.0;
-  }
-  return thres_hold;
 }
 
 void GnssPntSolver::WeightOnPostResidual(
@@ -131,7 +124,8 @@ void GnssPntSolver::WeightOnPostResidual(
 }
 
 void GnssPntSolver::RemoveAmbWithAbnormalRes(
-    const std::vector<ObsKey>& phase_recorder, const double& std_v,
+    const std::vector<ObsKey>& phase_recorder,
+    const double& std_v,
     const std::vector<unsigned int>& range_type,
     const Eigen::MatrixXd& post_res,
     const double band_res_sum[apollo::drivers::gnss::GLO_G3]) {
@@ -141,7 +135,7 @@ void GnssPntSolver::RemoveAmbWithAbnormalRes(
     if (range_type[i] == 0) {
       continue;
     }
-    if (fabs(post_res(i, 0)) > 5 * std_v || fabs(post_res(i, 0)) >= 0.15) {
+    if (fabs(post_res(i, 0)) > 5 * std_v || fabs(post_res(i, 0)) >= 0.10) {
       phase_slip_exist = true;
       amb_tracker_.DeleteSlipAmb(phase_recorder[ind_phase].band_id,
                                  phase_recorder[ind_phase].sat_prn);
@@ -167,23 +161,19 @@ PointThreeDim GnssPntSolver::BoundedRtkStd() {
   return phase_std;
 }
 
-// observations quality control
 bool GnssPntSolver::CheckSatObsForSPP(const SatelliteObservation& sat_obs) {
   if (sat_obs.band_obs_num() <= 0) {
     return false;
   }
-
   // 20804163.233 = 69 ms
   // 36804163.233 = 122.7 ms
   double time_duration = sat_obs.band_obs(0).pseudo_range() / C_MPS;
-
   if (time_duration < 0.030) {
     return false;
   }
   if (time_duration > 0.200) {
     return false;
   }
-
   return true;
 }
 
@@ -200,10 +190,10 @@ int GnssPntSolver::IsValidBandObs(const BandObservation& band_obs1,
 }
 
 bool GnssPntSolver::CheckBaserObs(double std, double distance) {
-  if (fabs(distance) > 100.0) {
+  if (fabs(std) > 30.0 || std < 0.0) {
     return false;
   }
-  if (fabs(std) > 30.0 || std < 0.0) {
+  if (fabs(distance) > 100.0) {
     return false;
   }
   return true;
@@ -269,7 +259,7 @@ bool GnssPntSolver::IsEnabledPhaseDiff(const double& data_outage,
   return true;
 }
 
-bool GnssPntSolver::CheckArResult(const double ratio, const double adop) {
+bool GnssPntSolver::CheckLambda(const double ratio, const double adop) {
   if (ratio < 0.0) {
     return false;
   }
@@ -306,7 +296,6 @@ bool GnssPntSolver::IsNeedRecursion(const bool& is_fixed,
   if (IsAbnormalFixedSolutionWithNewPhase(is_fixed, std_fixed,
                                              unknown_phase_num)) {
     EncodeDetails("abnormal_fixed_solution %6.3f", _std_v);
-    // shadow the new arising satellites, ignore them for some seconds.
     SeedToughSatGroup(1.0);
     return true;
   }
@@ -318,6 +307,24 @@ double GnssPntSolver::BoundRatio(const double& ratio) {
     return 1000.0;
   }
   return ratio;
+}
+
+double GnssPntSolver::GetStdThresForNewSat(const double new_ratio,
+                                                const double std_v) {
+  double thres_hold = 0.05;
+  if (new_ratio < 3) {
+    thres_hold = 0.002;
+  } else if (new_ratio < 5) {
+    thres_hold = 0.010;
+  } else if (new_ratio < 8) {
+    thres_hold = 0.020;
+  } else if (new_ratio < 15) {
+    thres_hold = 0.025;
+  }
+  if (std_v < 0.03) {
+    thres_hold *= 2.0;
+  }
+  return thres_hold;
 }
 
 bool GnssPntSolver::CheckNewsatSolution(const PointThreeDim& denu,

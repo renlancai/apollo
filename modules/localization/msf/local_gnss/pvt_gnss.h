@@ -70,7 +70,6 @@ class GnssPvt {
     return true;
   }
 
-  // GPS
   bool SaveEph(const T& current_eph);
   //
   bool GetPosVelClock(const unsigned int sat_prn,

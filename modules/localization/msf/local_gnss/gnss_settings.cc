@@ -23,7 +23,6 @@ namespace apollo {
 namespace localization {
 namespace local_gnss {
 
-// setting interface for initialize
 bool GnssPntSolver::SetPositionOption(const PositionOption position_option) {
   position_option_ = position_option;
   return true;

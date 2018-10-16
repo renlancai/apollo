@@ -47,8 +47,8 @@ class Atmosphere {
   double TropoDelay(const double elevation, const double azimuth);
   double TropoWet(const double elevation, const double azimuth);
   double TropoDry(const double elevation, const double azimuth);
-  double GestMapWet(const double elevation, const double azimuth);
-  double GestMapDry(const double elevation, const double azimuth);
+  double GetMapWet(const double elevation, const double azimuth);
+  double GetMapDry(const double elevation, const double azimuth);
 
  private:
   void ZtdMapNiel(const double elevation, const double azimuth,

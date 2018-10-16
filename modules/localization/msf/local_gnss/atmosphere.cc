@@ -153,14 +153,14 @@ double Atmosphere::TropoDry(const double elevation, const double azimuth) {
   return map_dry * ztd_dry_;
 }
 
-double Atmosphere::GestMapWet(const double elevation, const double azimuth) {
+double Atmosphere::GetMapWet(const double elevation, const double azimuth) {
   double map_wet = 0;
   double map_dry = 0;
   ZtdMapNiel(elevation, azimuth, &map_wet, &map_dry);
   return map_wet;
 }
 
-double Atmosphere::GestMapDry(const double elevation, const double azimuth) {
+double Atmosphere::GetMapDry(const double elevation, const double azimuth) {
   double map_wet = 0;
   double map_dry = 0;
   ZtdMapNiel(elevation, azimuth, &map_wet, &map_dry);

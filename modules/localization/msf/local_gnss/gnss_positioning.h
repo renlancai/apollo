@@ -346,7 +346,7 @@ class GnssPntSolver : public SensorPntSolver {
                            const Eigen::MatrixXd& float_dd_cvc,
                            Eigen::MatrixXd* inter_dd);
 
-  bool CheckArResult(const double ratio, const double adop);
+  bool CheckLambda(const double ratio, const double adop);
 
   bool IsAbnormalFixedSolutionWithNewPhase(
       const bool& is_fixed, const double std_fixed,
@@ -464,10 +464,12 @@ class GnssPntSolver : public SensorPntSolver {
   GnssPntResult last_fixed_rover_pnt_;
   unsigned int new_fixed_phase_num_ = 0;
 
+  unsigned int _continuous_risky_num = 0;
+
   bool test_ins_aid_ = false;
   bool debug_print_ = false;
   DISALLOW_COPY_AND_ASSIGN(GnssPntSolver);
-};  // class GnssPntSolver
+};
 
 class GnssDualAntSolver : public GnssPntSolver {
  public:

@@ -24,7 +24,8 @@
 namespace apollo {
 namespace localization {
 namespace local_gnss {
-double test_time = 10000000000 + 113354.0000;
+
+// SEMI_CYCYLE_PHASE processing is not supported yet.
 #define _NO_SEMI_CYCLE_PHASE_
 
 GnssPntSolver::GnssPntSolver() { Initialize(); }
@@ -302,7 +303,7 @@ int GnssPntSolver::SolveWithBaser(
     }
   }
 
-  // NOTICE: core setup for external aiding.
+  // NOTICE: core setup for external aiding, not supported yet.
   test_ins_aid_ = false;
 
   if (position_option_ <= apollo::localization::local_gnss::TIME_DIFF_PHASE) {
@@ -316,8 +317,7 @@ int GnssPntSolver::SolveWithBaser(
   // for real time, consider baser coordinate update
   double dis_gap = 0.0;
   // when basercoor not set
-  if (fabs(baser_coor_.x) < 10000.0 && fabs(baser_coor_.y) < 10000.0 &&
-      fabs(baser_coor_.z) < 10000.0) {
+  if (baser_coor_.Norm3D() < 30000.0) {
     EncodeDetails("base coordinate = %12.3f %12.3f %12.3f", baser_coor_.x,
                    baser_coor_.y, baser_coor_.z);
     return RET_INVALID_BASE_COORDINATE;
@@ -352,7 +352,8 @@ int GnssPntSolver::SolveWithBaser(
                                                 temp_baser, baser_obs,
                                                 baser_sat_vector_used)) {
     vel_baser = baser_preprocessor_.GetVelocity();
-    if (vel_baser.Norm3D() > 0.1) {
+    // TO DO: not suitable for moving dual-antenna mode.
+    if (vel_baser.Norm3D() > 0.2) {
       ResetFixedRtk();
     }
   }
@@ -388,16 +389,15 @@ int GnssPntSolver::SolveWithBaser(
     PointThreeDim dif_enu = dif_xyz;
     gnss_utility::dxyz2enu(spp_result, dif_xyz, &dif_enu);
     double dis = sqrt(dif_enu.x * dif_enu.x + dif_enu.y * dif_enu.y);
-    std_dif = sqrt(std_code_diff_.x + std_code_diff_.y + std_code_diff_.z);
+    std_dif = std_code_diff_.Norm3D();
     if (IsSafeCodeDiffPos(dis, std_dif, valid_delta_pos)) {
       rover_pnt->set_pnt_type(PNT_CODE_DIFF);
       rover_pnt->set_pos_x_m(code_dif_result.x);
       rover_pnt->set_pos_y_m(code_dif_result.y);
       rover_pnt->set_pos_z_m(code_dif_result.z);
-      PointThreeDim code_diff = std_code_diff_.SquareRoot();
-      rover_pnt->set_std_pos_x_m(code_diff.x);
-      rover_pnt->set_std_pos_y_m(code_diff.y);
-      rover_pnt->set_std_pos_z_m(code_diff.z);
+      rover_pnt->set_std_pos_x_m(std_code_diff_.x);
+      rover_pnt->set_std_pos_y_m(std_code_diff_.y);
+      rover_pnt->set_std_pos_z_m(std_code_diff_.z);
       rover_pnt->set_sovled_sat_num(common_in_rover.size());
       spp_result = code_dif_result;
     }
@@ -595,9 +595,7 @@ double GnssPntSolver::GetStandardPosition(
     Eigen::MatrixXd inv_atpa = ata.inverse();
 
     dx = inv_atpa * atv;
-    PrintMatrix(dx, "dx");
     post_res = vv - aa * dx;
-    PrintMatrix(post_res, "post_res");
     Eigen::MatrixXd temp = post_res.transpose() * pp * post_res;
     double delta =
         temp(0, 0) / (num_valid_sat - 3 - related_gnss_type->size() + 1);
@@ -607,28 +605,19 @@ double GnssPntSolver::GetStandardPosition(
         pp(i, i) = 10000;
       }
     }
-    PrintMatrix(pp, "pp");
     ata = at * pp * aa;
     atv = at * pp * vv;
-    PrintMatrix(ata, "ata");
     inv_atpa = ata.inverse();
-    PrintMatrix(inv_atpa, "inv_atpa");
     dx = inv_atpa * atv;
-    PrintMatrix(dx, "dx");
     post_res = vv - aa * dx;
-    PrintMatrix(post_res, "post_res");
     // update receiver clock
     for (unsigned int i = 3; i < dx.rows(); ++i) {
       receiver_clk(i - 3, 0) = dx(i, 0);
     }
-    PrintMatrix(receiver_clk, "receiver_clk");
-    PrintMatrix(post_res, "post_res");
-    PrintMatrix(pp, "pp");
-    PrintMatrix(inv_atpa, "inv_atpa");
     Eigen::MatrixXd vtpv = post_res.transpose() * pp * post_res /
                            (num_valid_sat - 3 - related_gnss_type->size());
     Eigen::MatrixXd test_v = inv_atpa * vtpv(0, 0);
-    PrintMatrix(test_v, "test_v");
+    // PrintMatrix(test_v, "test_v");
     std_res = sqrt(test_v(0, 0) + test_v(1, 1) + test_v(2, 2));
     // shield satellites with gross post residual
     for (unsigned int i = 0; i < post_res.rows(); ++i) {
@@ -750,13 +739,11 @@ double GnssPntSolver::GetStandardVelocity(
     spv_result->y += dx(1, 0);
     spv_result->z += dx(2, 0);
     Eigen::MatrixXd res = v - a * dx;
-    PrintMatrix(res, "res");
-    PrintMatrix(pp, "pp");
 
     Eigen::MatrixXd vtpv = res.transpose() * p * res /
                            (doppler_obs_num - 3 - related_gnss_type.size());
     Eigen::MatrixXd test_v = atpa_inv * vtpv(0, 0);
-    PrintMatrix(test_v, "test_v");
+    // PrintMatrix(test_v, "test_v");
     std = sqrt(test_v(0, 0) + test_v(1, 1) + test_v(2, 2));
     std_doppler_diff_.x = test_v(0, 0);
     std_doppler_diff_.y = test_v(1, 1);
@@ -834,17 +821,14 @@ bool GnssPntSolver::GetCodeDiffPosition(
     Eigen::MatrixXd atpa_inv = (aa.transpose() * aa).inverse();
     Eigen::MatrixXd dx = atpa_inv * (aa.transpose() * vv);
     res = vv - aa * dx;
-    PrintMatrix(res, "res");
-    PrintMatrix(atpa_inv, "atpa_inv");
     Eigen::MatrixXd vtpv = res.transpose() * res /
                            (res.rows() - (3 + related_gnss_type.size()) + 1);
     Eigen::MatrixXd std_3d = atpa_inv * vtpv(0, 0);
-    PrintMatrix(std_3d, "std_3d");
-    PrintMatrix(vtpv, "vtpv");
+    // PrintMatrix(vtpv, "vtpv");
     std_res = sqrt(std_3d(0, 0) + std_3d(1, 1) + std_3d(2, 2));
-    std_code_diff_.x = std_3d(0, 0);
-    std_code_diff_.y = std_3d(1, 1);
-    std_code_diff_.z = std_3d(2, 2);
+    std_code_diff_.x = sqrt(std_3d(0, 0));
+    std_code_diff_.y = sqrt(std_3d(1, 1));
+    std_code_diff_.z = sqrt(std_3d(2, 2));
 
     code_dif_result->x += dx(0, 0);
     code_dif_result->y += dx(1, 0);
@@ -986,9 +970,6 @@ bool GnssPntSolver::ConstructSDEquation(
     const PointThreeDim& baser_coor, PointThreeDim* rover_coor) {
   EnableHalfCycleAr(false);
   amb_tracker_.ClearHalfCycleRecorder();
-
-  // baser and rover atmosphere parameters: Atmosphere constructor need GPS time
-  // input
   Atmosphere trop_baser(baser_coor, obs_rover.gnss_week(),
                         obs_rover.gnss_second_s());
   Atmosphere trop_rover(*rover_coor, obs_rover.gnss_week(),
@@ -1002,13 +983,11 @@ bool GnssPntSolver::ConstructSDEquation(
   if (ztd_option_ >= ZTD_ESTIMATE) {
     num_zwd = 1;
   }
-  // take glonass ifb with two different mixed receiver into estimation
-  // to try to fix glonass ambiguities
+  // estimate glonass ifb with different mixed receiver to fix glonass amb.
   unsigned int num_ifb = 0;
   double ifb0 = glonass_ifb_;
   if (EnableGlonassIfbEstimated() && IsGlonassExisted(related_gnss_type)) {
     num_ifb = 1;
-    // prior-table provided
   }
   unsigned int num_states = 3 + num_zwd + num_ifb + gnss_sys_num;
 
@@ -1035,9 +1014,10 @@ bool GnssPntSolver::ConstructSDEquation(
   Pl.setIdentity(max_common_obs_num, max_common_obs_num);
   cc.setZero();
 
-  // when ambiguity of one phase is fixed ,then the phase observation turns
+  // the phase observation with amb resolved turns
   // into a range observation,and common_range_num ++
   unsigned int common_range_num = 0;
+
   // common_phase_num equals number of unfixed ambiguity
   unsigned int common_phase_num = 0;
 
@@ -1045,11 +1025,9 @@ bool GnssPntSolver::ConstructSDEquation(
   std::vector<GnssType> common_related_gnss_type;
   common_related_gnss_type.resize(0);
 
-  // store the range type
-  // 0 for pseudorange and 1 for phase
+  // store the range type with 0 for pseudorange and 1 for phase
   std::vector<unsigned int> range_type;
   range_type.resize(0);
-  // store the obs key
   std::vector<apollo::localization::local_gnss::ObsKey> phase_recorder;
   phase_recorder.resize(0);
 
@@ -1065,7 +1043,7 @@ bool GnssPntSolver::ConstructSDEquation(
                                common_in_rover[i].azimuth * deg2rad);
     // estimate the ZWD residual after model correction
     double rover_map_wet =
-        trop_rover.GestMapWet(common_in_rover[i].elevation * deg2rad,
+        trop_rover.GetMapWet(common_in_rover[i].elevation * deg2rad,
                            common_in_rover[i].azimuth * deg2rad);
     // get common sat on rover and baser
     SatelliteObservation rover_sat_j;
@@ -1106,15 +1084,11 @@ bool GnssPntSolver::ConstructSDEquation(
         double sys_weight = WeightScaleOnGnssSystem(common_in_rover[i].sat_sys);
         // pseudo range process
         if (rover_sat_j.band_obs(m).pseudo_range() > 0.0 &&
-            baser_sat_j.band_obs(n).pseudo_range() > 0.0 &&
-            fabs(rover_sat_j.band_obs(m).carrier_phase()) > 0.0 &&
-            fabs(baser_sat_j.band_obs(n).carrier_phase()) > 0.0 &&
-            !range_valid) {
-#if 1
-          // only use one pseudo-range observation, designed for qianxun baser
-          // data with bad 'DCB' of L1/L2
+              baser_sat_j.band_obs(n).pseudo_range() > 0.0 &&
+              fabs(rover_sat_j.band_obs(m).carrier_phase()) > 0.0 &&
+              fabs(baser_sat_j.band_obs(n).carrier_phase()) > 0.0 &&
+              !range_valid) {
           range_valid = true;
-#endif
           range_type.push_back(0);
           ap(common_range_num, 0) = common_in_rover[i].direction.x;
           ap(common_range_num, 1) = common_in_rover[i].direction.y;
@@ -1128,10 +1102,6 @@ bool GnssPntSolver::ConstructSDEquation(
               apollo::localization::local_gnss::C_MPS *
               (common_in_rover[i].clock_bias - common_in_baser[i].clock_bias);
           // To DO: rm wrong range obs with clock bias already corrected
-          /*if (fabs(vp(common_range_num, 0)) > 1000000) {
-              continue;
-          }*/
-
           // clock
           ap(common_range_num, 3 + num_zwd + num_ifb + sat_index_in_sys) = 1;
           if (ztd_option_ >= ZTD_ESTIMATE) {
@@ -1143,12 +1113,9 @@ bool GnssPntSolver::ConstructSDEquation(
           if (num_ifb >= 1) {
             ap(common_range_num, 3 + num_zwd) = glo_fre_num;
           }
-          //
           pp(common_range_num, common_range_num) = sina / range_precision_;
           pp(common_range_num, common_range_num) /= sys_weight;
           ++common_range_num;
-        } else {
-          // continue;
         }
         if (fabs(rover_sat_j.band_obs(m).carrier_phase()) <= 0.0 ||
             fabs(baser_sat_j.band_obs(n).carrier_phase()) <= 0.0) {
@@ -1190,9 +1157,6 @@ bool GnssPntSolver::ConstructSDEquation(
         if (IsToughNewSat(temp)) {
           continue;
         }
-        // CheckPossibleHalfSlip(rover_sat_j.band_obs(m).loss_lock_index());
-        // CheckPossibleHalfSlip(baser_sat_j.band_obs(n).loss_lock_index());
-        // phase range process (when fixed, turn into "range" obs)
         range_type.push_back(1);
 
         phase_recorder.push_back(temp);
@@ -1258,7 +1222,6 @@ bool GnssPntSolver::ConstructSDEquation(
           }
           Pl(common_phase_num, common_phase_num) = sina / phase_precision_;
           Pl(common_phase_num, common_phase_num) /= sys_weight;
-          // Pl(common_phase_num,common_phase_num) /= 4.0;
           cc(common_phase_num, ind) = len;
           am_phase.row(valid_phase_num) = al.row(common_phase_num);
           ++common_phase_num;
@@ -1269,23 +1232,6 @@ bool GnssPntSolver::ConstructSDEquation(
     }
     if (sat_valid == true) {
       ++num_valid_sat_;
-    }
-  }
-
-  if (GetEnableExternalPrediction() && test_ins_aid_) {
-    const double unit_weight = 1.0 * 1.0;
-    // a prior coordinate with 50 cm accuracy
-    double weight_coor[3] = {_predict_std_pos[0][0], _predict_std_pos[1][1],
-                             _predict_std_pos[2][2]};
-    double v_obs[3] = {0.0};
-    v_obs[0] = _predict_position.x - rover_coor->x;
-    v_obs[1] = _predict_position.y - rover_coor->y;
-    v_obs[2] = _predict_position.z - rover_coor->z;
-    for (unsigned int i = 0; i < 3; ++i) {
-      ap(common_range_num, i) = 1.0;
-      vp(common_range_num, 0) = v_obs[i];
-      pp(common_range_num, common_range_num) = unit_weight / weight_coor[i];
-      ++common_range_num;
     }
   }
 
@@ -1303,11 +1249,9 @@ bool GnssPntSolver::ConstructSDEquation(
   unsigned int unknown_phase_num = amb_tracker_.GetNumUnfixedAmb();
 
   // single difference for pseudo_range and fixed carrier_phase
-  PrintMatrix(ap, "ap");
   Eigen::MatrixXd am = ap.topRows(common_range_num);
   Eigen::MatrixXd lm = vp.topRows(common_range_num);
   Eigen::MatrixXd pm = pp.topLeftCorner(common_range_num, common_range_num);
-
   Eigen::MatrixXd atpa = am.transpose() * pm * am;
   Eigen::MatrixXd inv_atpa = atpa.inverse();
   Eigen::MatrixXd atpl = am.transpose() * pm * lm;
@@ -1316,22 +1260,11 @@ bool GnssPntSolver::ConstructSDEquation(
   dx.setZero();
   dx = inv_atpa * atpl;
 
-  PrintMatrix(cc, "cc");
-  PrintMatrix(am, "am");
-  PrintMatrix(lm, "lm");
-  PrintMatrix(pm, "pm");
-  PrintMatrix(atpa, "atpa");
-  PrintMatrix(inv_atpa, "inv_atpa");
-  PrintMatrix(atpl, "atpl");
-  PrintMatrix(dx, "dx");
-  PrintMatrix(btpb_, "btpb_");
-  PrintMatrix(btpl_, "btpl_");
-
-  // first do a LS to get a dx under
+  // first do a LS to get a dx
   Eigen::MatrixXd dop = am.transpose() * am;
   dop = dop.inverse();
   PointThreeDim rtk_dop(dop(0, 0), dop(1, 1), dop(2, 2));
-  // phase = 15 mm
+
   const double phase_p = 0.015;
   const double precision_dd_phase = phase_p * 2.0;
 
@@ -1347,20 +1280,15 @@ bool GnssPntSolver::ConstructSDEquation(
 
   std_rtk_ = rtk_dop * precision_dd_phase * precision_dd_phase;
   Eigen::MatrixXd post_res = lm - am * dx;
-  PrintMatrix(post_res, "post_res");
   Eigen::MatrixXd vtpv = post_res.transpose() * pm * post_res;
   vtpv /= (post_res.rows() - num_states + 1);
   Eigen::MatrixXd std_3d = inv_atpa * vtpv(0, 0);
-  PrintMatrix(post_res, "post_res");
-  PrintMatrix(vtpv, "vtpv");
-  PrintMatrix(inv_atpa, "inv_atpa");
-  PrintMatrix(std_3d, "std_3d");
   _std_v = sqrt(std_3d(0, 0) + std_3d(1, 1) + std_3d(2, 2));
   std_rtk_.x = std_3d(0, 0);
   std_rtk_.y = std_3d(1, 1);
   std_rtk_.z = std_3d(2, 2);
 
-  // valid the fixed solution before adding new-rising satellites
+  // valid the fixed solution before adding new observations
   bool re_cal =
       IsNeedRecursion(b_rtkfixed_, _std_v, unknown_phase_num, common_phase_num);
   if (re_cal) {
@@ -1372,7 +1300,6 @@ bool GnssPntSolver::ConstructSDEquation(
                                    common_in_baser, related_gnss_type,
                                    baser_coor, rover_coor);
     } else {
-      // RET_INVALID_RTK case 1
       EncodeDetails("Too many recursions:%d", num_sd_phase_recursive_);
       return false;
     }
@@ -1383,7 +1310,6 @@ bool GnssPntSolver::ConstructSDEquation(
     const unsigned int max_band_num = apollo::drivers::gnss::GLO_G3;
     int band_obs_num[max_band_num] = {0};
     double band_res_sum[max_band_num] = {0.0};
-#if 1
     unsigned int ind_phase_print = 0;
     int glo_fre_num = 0;
     for (unsigned int i = 0; i < range_type.size(); ++i) {
@@ -1396,14 +1322,14 @@ bool GnssPntSolver::ConstructSDEquation(
       double len = GetBandLength(temp.sat_prn, temp.band_id, &glo_fre_num);
       band_res_sum[temp.band_id] += post_res(i, 0) / len;
     }
+
     for (unsigned int i = 0; i < max_band_num; ++i) {
       if (band_obs_num[i] != 0) {
         band_res_sum[i] /= band_obs_num[i];
       }
     }
-#endif
+
     if (_std_v < 0.03) {
-      // healthy result
       counter_for_low_ratio_ = 0;
       ratio_ = 999.9;
       rover_coor->x += dx(0, 0);
@@ -1425,8 +1351,6 @@ bool GnssPntSolver::ConstructSDEquation(
       atpl = am.transpose() * px * lm;
       dx = inv_atpa * atpl;
       post_res = lm - am * dx;
-      PrintMatrix(dx, "dx");
-      PrintMatrix(post_res, "post_res");
 
       vtpv = post_res.transpose() * px * post_res;
       std_3d = inv_atpa * vtpv(0, 0);
@@ -1439,7 +1363,6 @@ bool GnssPntSolver::ConstructSDEquation(
         break;
       }
     }
-
     RemoveAmbWithAbnormalRes(phase_recorder, _std_v, range_type, post_res,
                                  band_res_sum);
     // healthy result
@@ -1505,10 +1428,6 @@ bool GnssPntSolver::ConstructSDEquation(
 
   lm -= am * dx;
   ln -= an * dx + b * float_sd;
-  // Eigen::MatrixXd vtpv_m = lm.transpose() * pm * lm;
-  // Eigen::MatrixXd vtpv_n = ln.transpose() * pn * ln;
-  // PrintMatrix(inv_atpa * vtpv_m(0, 0), "inv_atpa * vtpv_m(0, 0)");
-  // PrintMatrix(inv_atpa * vtpv_n(0, 0), "inv_atpa * vtpv_n(0, 0)");
 
   vtpv = lm.transpose() * pm * lm + ln.transpose() * pn * ln;
   vtpv /= (ln.rows() + lm.rows() - num_states + 1);
@@ -1543,32 +1462,21 @@ bool GnssPntSolver::ConstructSDEquation(
   if (ref_amb.rows() != 0) {
     adop = pow(float_dd_cvc.determinant(), 1.0 / integer_dd.rows());
     ratio = ResolveAmbiguity(float_dd, float_dd_cvc, &integer_dd);
-    if (!CheckArResult(ratio, adop)) {
-      // RET_INVALID_RTK case 4
+    if (!CheckLambda(ratio, adop)) {
       EncodeDetails("Invalid AR lambda:r=%.1f , adop=%.1f", ratio, adop);
       return false;
     }
     PrintMatrix(integer_dd, "integer_dd");
     PrintMatrix(integer_dd + ref_amb, "integer_dd + ref_amb");
     Eigen::MatrixXd matrix_dd_2_sd = matrix_sd_2_dd.transpose();
-#ifndef _NO_SEMI_CYCLE_PHASE_
-    for (unsigned int i = 0; i < matrix_dd_2_sd.rows(); ++i) {
-      for (unsigned int j = 0; j < matrix_dd_2_sd.cols(); ++j) {
-        if (fabs(matrix_dd_2_sd(i, j)) != 0) {
-          matrix_dd_2_sd(i, j) = 1.0 / matrix_dd_2_sd(i, j);
-        }
-      }
-    }
-#endif
+
     integer_sd = matrix_dd_2_sd * (integer_dd + ref_amb);
     ratio_thres = mlambda_solver_.GetRatioThreshold(integer_dd.rows(),
                                                       real_time_ub_fail_rate_);
   } else {
-    // RET_INVALID_RTK case 5
     invalid_rtk_sub_infor_ = "New-arising set as reference";
     integer_sd = float_sd;
-    ratio = 999.89999;
-    // return false;
+    ratio = 999.8888;
   }
   PrintMatrix(integer_sd, "integer_sd");
   PrintMatrix(float_sd, "float_sd");
@@ -1577,7 +1485,6 @@ bool GnssPntSolver::ConstructSDEquation(
   double diff_distance = diff_ar.norm();
   // update position after resolving integer-fixing
   Eigen::MatrixXd newdx = inv_atpa * atpb * (float_sd - integer_sd);
-  PrintMatrix(newdx, "newdx");
 
   Eigen::MatrixXd fake_ln = ln - (an * newdx + b * (integer_sd - float_sd));
   Eigen::MatrixXd fake_lm = lm - am * newdx;
@@ -1611,7 +1518,6 @@ bool GnssPntSolver::ConstructSDEquation(
       AddToFixedPool(integer_sd);
       ClearSequential();
       counter_for_low_ratio_ = 0;
-      // fix solution
       ln -= an * newdx + b * (integer_sd - float_sd);
       lm -= am * newdx;
       vtpv = lm.transpose() * pm * lm + ln.transpose() * pn * ln;
@@ -1628,14 +1534,12 @@ bool GnssPntSolver::ConstructSDEquation(
       rover_coor->z += newdx(2, 0);
     } else {
       ++counter_for_low_ratio_;
-      // when std too large or ratio too small
       if (_std_v > 0.25 || counter_for_low_ratio_ >= 20) {
         ResetFixedRtk();
       }
     }
   } else {
     ratio_ = BoundRatio(ratio);
-    // newdx should be less than a threshold (a function of ratio)
     PointThreeDim denu;
     PointThreeDim dxyz;
     dxyz.x = newdx(0, 0);
@@ -1676,7 +1580,6 @@ bool GnssPntSolver::ConstructSDEquation(
     } else {
       newdx.setZero();
       counter_for_low_ratio_ += 1;
-      // being tough to fix new sat, ignore them for some seconds.
       SeedToughSatGroup(ratio);
       ClearSequential();
       if (counter_for_low_ratio_ >= 10 && _std_v > 0.1) {
@@ -1709,7 +1612,6 @@ double GnssPntSolver::ResolveAmbiguity(const Eigen::MatrixXd& float_dd,
   return mlambda_solver_.GetRatio();
 }
 
-// interface for other sensors' aiding, not supported yet
 bool GnssPntSolver::MotionUpdate(double time_sec, const PointThreeDim position,
                                   const double std_pos[3][3],
                                   const PointThreeDim velocity,

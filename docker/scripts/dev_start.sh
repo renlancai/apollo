@@ -457,6 +457,7 @@ function main() {
         --shm-size "${SHM_SIZE}" \
         --pid=host \
         -v /dev/null:/dev/raw1394 \
+        -v /usr/local/cuda:/usr/local/cuda_host \
         "${DEV_IMAGE}" \
         /bin/bash
 

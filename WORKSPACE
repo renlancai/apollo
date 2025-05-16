@@ -29,6 +29,15 @@ http_archive(
     sha256 ="18cd4df4e410b0439a4935f9ca035bd979993d42372ba79e7f2d4fafe9596ef0",
 )
 
+http_archive(
+    name = "rules_cython",
+    strip_prefix = "cython-c2b80d87658a8525ce091cbe146cb7eaa29fed5c",
+    urls = [
+      "file:///apollo/build_proxy/cython-c2b80d87658a8525ce091cbe146cb7eaa29fed5c.tar.gz"],
+    sha256 ="d68138a2381afbdd0876c3cb2a22389043fa01c4badede1228ee073032b07a27",
+)
+
+
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies()

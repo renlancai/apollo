@@ -13,6 +13,22 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "rules_java",
+    strip_prefix = "rules_java-981f06c3d2bd10225e85209904090eb7b5fb26bd",
+    urls = [
+      "file:///apollo/build_proxy/rules_java-981f06c3d2bd10225e85209904090eb7b5fb26bd.tar.gz"],
+    sha256 ="f5a3e477e579231fca27bf202bb0e8fbe4fc6339d63b38ccb87c2760b533d1c3",
+)
+
+http_archive(
+    name = "rules_swift",
+    strip_prefix = "rules_swift.0.12.1",
+    urls = [
+      "file:///apollo/build_proxy/rules_swift.0.12.1.tar.gz"],
+    sha256 ="18cd4df4e410b0439a4935f9ca035bd979993d42372ba79e7f2d4fafe9596ef0",
+)
+
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
 
 rules_foreign_cc_dependencies()

@@ -791,6 +791,8 @@ def _tf_sysroot(repository_ctx):
 def _compute_cuda_extra_copts(repository_ctx, compute_capabilities):
     copts = []
     for capability in compute_capabilities:
+        if capability > "compute_75":    # add
+            capability = "compute_75"    # add
         if capability.startswith("compute_"):
             capability = capability.replace("compute_", "sm_")
             copts.append("--cuda-include-ptx=%s" % capability)

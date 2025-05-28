@@ -22,11 +22,19 @@ http_archive(
 )
 
 http_archive(
-    name = "rules_swift",
+    name = "rules_swift.0.12.1",
     strip_prefix = "rules_swift.0.12.1",
     urls = [
       "file:///apollo/build_proxy/rules_swift.0.12.1.tar.gz"],
     sha256 ="18cd4df4e410b0439a4935f9ca035bd979993d42372ba79e7f2d4fafe9596ef0",
+)
+
+http_archive(
+    name = "six-1.12.0",
+    strip_prefix = "six-1.12.0",
+    urls = [
+      "file:///apollo/build_proxy/six-1.12.0.tar.gz"],
+    sha256 ="d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73",
 )
 
 http_archive(

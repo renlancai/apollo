@@ -54,14 +54,16 @@ class ActorFactory(object):
 
     def __init__(self, node, world, log, sync_mode=False, ):
         self.log = log
-        self.node = node
-        self.world = world
+        self.node = node # father cyber node
+        self.world = world # carla world
         self.blueprint_lib = self.world.get_blueprint_library()
         self.spawn_points = self.world.get_map().get_spawn_points()
         self.sync_mode = sync_mode
 
         self._previous_actor_ids = []
         self.actors = {}
+        
+        self.rgb_actors = {}
 
         self._task_queue = queue.Queue()
         self._known_actor_ids = []  # used to immediately reply to spawn_actor/destroy_actor calls
@@ -133,12 +135,30 @@ class ActorFactory(object):
         with self.lock:
             for actor_id in self.actors:
                 try:
+                    # if (actor_id in self.rgb_actors):
+                    #     print(actor_id)
+                    #     import pdb;pdb.set_trace()
                     self.actors[actor_id].update(frame_id, timestamp)
+                    
                 except RuntimeError as e:
                     self.log.warn("Update actor {}({}) failed: {}".format(
                         self.actors[actor_id].__class__.__name__, actor_id, e))
                     continue
 
+
+    def update_cameras_states(self, frame_id, timestamp):
+        """
+        update the state of all known actors
+        """
+        with self.lock:
+            for actor_id in self.rgb_actors:
+                try:
+                    self.actors[actor_id].update(frame_id, timestamp)
+                    
+                except RuntimeError as e:
+                    self.log.warn("Update actor {}({}) failed: {}".format(
+                        self.actors[actor_id].__class__.__name__, actor_id, e))
+                    continue
     def clear(self):
         for _, actor in self.actors.items():
             actor.destroy()
@@ -313,7 +333,9 @@ class ActorFactory(object):
                 actor = Vehicle(uid, name, parent, self.node, carla_actor)
         elif carla_actor.type_id.startswith("sensor"):
             if carla_actor.type_id.startswith("sensor.camera"):
+                # import pdb;pdb.set_trace()
                 if carla_actor.type_id.startswith("sensor.camera.rgb"):
+                    print("creating rgb camera")
                     actor = RgbCamera(uid, name, parent, spawn_pose, self.node,
                                       carla_actor, self.sync_mode)
                 elif carla_actor.type_id.startswith("sensor.camera.depth"):
@@ -331,6 +353,7 @@ class ActorFactory(object):
                 else:
                     actor = Camera(uid, name, parent, spawn_pose, self.node,
                                    carla_actor, self.sync_mode)
+                self.rgb_actors[actor.uid] = actor
             elif carla_actor.type_id.startswith("sensor.lidar"):
                 if carla_actor.type_id.endswith("sensor.lidar.ray_cast"):
                     actor = Lidar(uid, name, parent, spawn_pose, self.node,

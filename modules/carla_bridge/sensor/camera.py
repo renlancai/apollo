@@ -66,6 +66,8 @@ class Camera(Sensor):
         else:
             self._build_camera_info()
 
+        # import pdb;pdb.set_trace()
+        
         self.camera_image_writer = node.new_writer(self.get_topic_prefix() + "/image",
                                                    Image,
                                                    qos_depth=10)
@@ -125,7 +127,7 @@ class Camera(Sensor):
         #cam_img.encoding = 'BAYER_RGGB8'
         cam_img.encoding = 'rgb8'
         cam_img.data = cv2.imencode('.jpg', image_data_array)[1].tostring()
-        # self.camera_image_writer.write(cam_img)
+        self.camera_image_writer.write(cam_img)
 
         cam_compressed_img = CompressedImage()
         cam_compressed_img.header.CopyFrom(self.parent.get_msg_header())

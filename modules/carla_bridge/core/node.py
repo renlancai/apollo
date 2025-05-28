@@ -38,8 +38,8 @@ class CyberNode(object):
     def new_rate(self, frequency):
         return self.cyber_time.Rate(frequency)
 
-    def new_timer(self, timer_period_sec, callback, oneshot=0):
-        return self.cyber_timer.Timer(timer_period_sec * 1000, callback, oneshot)  # ms
+    # def new_timer(self, timer_period_sec, callback, oneshot=0):
+    #     return self.cyber_timer.Timer(timer_period_sec * 1000, callback, oneshot)  # ms
 
     def new_service(
         self,

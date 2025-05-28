@@ -69,7 +69,7 @@ class Sensor(Actor):
         super().__init__(
             uid=uid, name=name, parent=parent, node=node, carla_actor=carla_actor
         )
-
+        self.uid = uid
         self.relative_spawn_pose = relative_spawn_pose
         self.synchronous_mode = synchronous_mode
         self.queue = queue.Queue()
@@ -193,6 +193,7 @@ class Sensor(Actor):
                 self.log.info(
                     f"{self.__class__.__name__}({self.get_id()}): process {frame}"
                 )
+                import pdb;pdb.set_trace()
                 self.sensor_data_updated(carla_sensor_data)
             except queue.Empty:
                 return
@@ -215,6 +216,8 @@ class Sensor(Actor):
                             ),
                             timestamp,
                         )
+                        # import pdb;pdb.set_trace()
+                        # print(self.uid, type(carla_sensor_data))
                         self.sensor_data_updated(carla_sensor_data)
                         return
                     elif carla_sensor_data.frame < frame:
@@ -232,8 +235,10 @@ class Sensor(Actor):
     def update(self, frame, timestamp):
         if self.synchronous_mode:
             if self.is_event_sensor:
+                # print("aaaaaaa")
                 self._update_synchronous_event_sensor(frame, timestamp)
             else:
+                # print("bbbbbbb") # triggerd by carla_bridge
                 self._update_synchronous_sensor(frame, timestamp)
 
         super().update(frame, timestamp)

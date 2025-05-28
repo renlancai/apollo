@@ -33,6 +33,7 @@ class CarlaCyberBridge(CyberNode):
         self._registered_actors = None
         self.on_tick_id = None
         self.synchronous_mode_update_thread = None
+        self.synchronous_mode_update_camera_thread = None
         self.clock_writer = None
         self.actor_factory = None
         self.sync_mode = None
@@ -51,6 +52,8 @@ class CarlaCyberBridge(CyberNode):
         self.carla_world = carla_world
 
         self.synchronous_mode_update_thread = None
+        self.synchronous_mode_update_camera_thread = None
+        
         self.shutdown = Event()
 
         self.carla_settings = carla_world.get_settings()
@@ -86,6 +89,14 @@ class CarlaCyberBridge(CyberNode):
             )
             self.synchronous_mode_update_thread.daemo = True
             self.synchronous_mode_update_thread.start()
+            
+            self.synchronous_mode_update_camera_thread = Thread(
+                target=self._synchronous_mode_camera_update
+            )
+            self.synchronous_mode_update_camera_thread.daemo = True
+            self.synchronous_mode_update_camera_thread.start()
+            
+            
         self._registered_actors = []
 
         carla_spawn_objects_thread = threading.Thread(
@@ -125,6 +136,17 @@ class CarlaCyberBridge(CyberNode):
             self.update_clock(world_snapshot.timestamp)
             self._update(frame, world_snapshot.timestamp.elapsed_seconds)
             self.actor_factory.update_available_objects()
+            
+    
+    def _synchronous_mode_camera_update(self):
+        """
+        execution loop for synchronous mode
+        """
+        while not self.shutdown.is_set():
+            frame = self.carla_world.tick()
+            world_snapshot = self.carla_world.get_snapshot()
+            self.update_clock(world_snapshot.timestamp) # maybe can be commented
+            self.actor_factory.update_cameras_states(frame, world_snapshot.timestamp.elapsed_seconds)
 
     def _update(self, frame_id, timestamp):
         """
@@ -161,6 +183,8 @@ class CarlaCyberBridge(CyberNode):
                 self.carla_world.remove_on_tick(self.on_tick_id)
         else:
             self.synchronous_mode_update_thread.join()
+            self.synchronous_mode_update_camera_thread.join()
+            
         self.log.info("Object update finished.")
         for uid in self._registered_actors:
             self.actor_factory.destroy_actor(uid)

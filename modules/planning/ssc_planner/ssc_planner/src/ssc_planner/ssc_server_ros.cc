@@ -299,4 +299,14 @@ void SscPlannerServer::Replan() {
   next_traj_ = std::move(planner_.trajectory());
 }
 
+// core interface
+// planning::SscPlannerServer* p_ssc_server_{nullptr};
+// planning::EudmPlannerServer* p_bp_server_{nullptr};
+
+// int BehaviorUpdateCallback(
+//     const semantic_map_manager::SemanticMapManager& smm) {
+//   if (p_ssc_server_) p_ssc_server_->PushSemanticMap(smm);
+//   return 0;
+// }
+
 }  // namespace planning

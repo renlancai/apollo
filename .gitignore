@@ -82,3 +82,4 @@ tools/FlameGraph
 .DS_Store
 
 #WORKSPACE
+modules/planning/ssc_planner/build/*

@@ -8,12 +8,6 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall")
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    visualization_msgs
-    sensor_msgs
-    tf
-)
 
 find_package(Protobuf REQUIRED)
 set(THIRD_PARTY_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty)
@@ -29,14 +23,6 @@ find_package(OOQP REQUIRED)
 if(NOT OOQP_FOUND)
     message(FATAL_ERROR "OOQP not found.")
 endif()
-
-#if this catkin packge's header is used by other packages, use catkin_package to
-#declare the include directories of this package.
-catkin_package(
-    INCLUDE_DIRS inc ${THIRD_PARTY_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${OOQP_INCLUDE_DIRS}
-    LIBRARIES hkust_pl_common
-    CATKIN_DEPENDS roscpp visualization_msgs sensor_msgs tf
-)
 
 set(THIRD_PARTY_LIBRARIES
     dw
@@ -89,11 +75,3 @@ target_link_libraries(hkust_pl_common
     opencv_highgui
     hkust_pl_ooqp_itf
 )
-
-#install the hearder files so that other packages can include.
-#install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
- #  DESTINATION ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_INCLUDE_DESTINATION}/
- #  FILES_MATCHING PATTERN "*.h"
- #  PATTERN ".svn" EXCLUDE
-#)
